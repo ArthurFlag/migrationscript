@@ -70,6 +70,7 @@ def cleanup_interpreted_text(md_file_path):
 
     # Remove occurrences of {.interpreted-text role="doc"}
     md_content = re.sub(r'{\.interpreted-text\s+role=\"doc\"}', '', md_content, flags=re.DOTALL)
+    md_content = re.sub(r'{\.interpreted-text\s+role=\"ref\"}', '', md_content, flags=re.DOTALL)
 
     # Search for the pattern and replace it
     updated_content = re.sub(r'`(.*?)\s*<(.*?)>`', r'[\1](\2)', md_content, re.MULTILINE)
