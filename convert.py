@@ -46,13 +46,15 @@ def convert_rst_to_md(input_path, output_path, log_file):
 def fix_admonitions(md_file_path):
     """
     Fix admonitions in a Markdown file.
-    Remove lines containing "::: title".
+    Remove lines containing "::: title" followed by a generic title and ":::".
     """
     with open(md_file_path, 'r', encoding='utf-8') as md_file:
         md_content = md_file.read()
 
-    # Remove lines containing "::: title"
-    updated_content = re.sub(r'^\s*:::\s+title\s*$', '', md_content, flags=re.MULTILINE)
+    # Remove lines containing "::: title" and ":::" for various admonition types
+    updated_content = re.sub(
+        r'^\s*:::\s+title\s*$(.*?)^\s*:::\s*$', '', md_content, flags=re.MULTILINE | re.DOTALL
+    )
 
     # Write the updated content back to the Markdown file
     with open(md_file_path, 'w', encoding='utf-8') as md_file:
@@ -66,12 +68,15 @@ def cleanup_interpreted_text(md_file_path):
     with open(md_file_path, 'r', encoding='utf-8') as md_file:
         md_content = md_file.read()
 
+    # Remove occurrences of {.interpreted-text role="doc"}
+    md_content = re.sub(r'{\.interpreted-text\s+role=\"doc\"}', '', md_content, flags=re.DOTALL)
+
     # Search for the pattern and replace it
-    updated_content = re.sub(r'(\S+)\s*<(.*?)>`{.*?}', r'[\1](\2)', md_content)
+    updated_content = re.sub(r'`(.*?)\s*<(.*?)>`', r'[\1](\2)', md_content, re.MULTILINE)
 
     # Write the updated content back to the Markdown file
-    with open(md_file_path, 'w', encoding='utf-8') as md_file:
-        md_file.write(updated_content)
+    with open(md_file_path, 'w', encoding='utf-8') as md_file2:
+        md_file2.write(updated_content)
 
 def cleanup(destination_path, log_file_path):
     """
