@@ -83,13 +83,10 @@ def cleanup_interpreted_text(md_file_path):
     with open(md_file_path, 'r', encoding='utf-8') as md_file:
         md_content = md_file.read()
 
-    md_content = re.sub(r'{\.interpreted-text\s+role=\"doc\"}', '', md_content, flags=re.DOTALL)
-    md_content = re.sub(r'{\.interpreted-text\s+role=\"ref\"}', '', md_content, flags=re.DOTALL)
-
-    updated_content = re.sub(r'`(.*?)\s*<(.*?)>`', r'[\1](\2)', md_content, re.MULTILINE)
-
+    pattern = r'`(.*?)\s*<(.*?)>`{\.interpreted-text\s+role=\"doc\"}'
+    md_content = re.sub(pattern, r'[\1](\2)', md_content, flags=re.DOTALL)
     with open(md_file_path, 'w', encoding='utf-8') as md_file:
-        md_file.write(updated_content)
+        md_file.write(md_content)
 
 def cleanup(destination_path, log_file_path):
     for root, dirs, files in os.walk(destination_path):
