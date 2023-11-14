@@ -1,1 +1,2 @@
 pypandoc>=1.5
+click>=8.1.7
