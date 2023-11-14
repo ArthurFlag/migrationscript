@@ -2,6 +2,19 @@ import os
 import sys
 import pypandoc
 import re
+import shutil
+
+def delete_folder(path):
+    try:
+        # Check if the folder exists
+        if os.path.exists(path):
+            # Use shutil.rmtree to delete the folder and its contents
+            shutil.rmtree(path)
+            print(f"Folder at {path} successfully deleted.")
+        else:
+            print(f"Folder at {path} does not exist.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 def update_title(md_file_path, log_file_path):
     """
@@ -94,24 +107,21 @@ def cleanup(destination_path, log_file_path):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python script.py folder_path destination_path")
+        print("Usage: python script.py source_path destination_path")
         sys.exit(1)
 
-    folder_path = sys.argv[1]
+    source_path = sys.argv[1]
     destination_path = sys.argv[2]
     log_file_path = "log.txt"
-
-    for root, dirs, files in os.walk(folder_path):
+    delete_folder(destination_path)
+    for root, dirs, files in os.walk(source_path):
         for file in files:
             if file.endswith(".rst"):
                 rst_file_path = os.path.join(root, file)
-                relative_path = os.path.relpath(rst_file_path, folder_path)
+                relative_path = os.path.relpath(rst_file_path, source_path)
                 md_file_path = os.path.join(destination_path, relative_path[:-4] + ".md")
-
-                # Ensure the destination folder exists
                 os.makedirs(os.path.dirname(md_file_path), exist_ok=True)
-
                 convert_rst_to_md(rst_file_path, md_file_path, os.path.join(destination_path, log_file_path))
 
-    cleanup(destination_path,log_file_path)
-    print("Conversion and cleanup completed successfully.")
+    cleanup(destination_path, log_file_path)
+    print("Conversion done.")
