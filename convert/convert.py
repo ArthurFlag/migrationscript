@@ -63,8 +63,12 @@ def fix_admonitions(md_content):
         r'\s+^\s*:::\s+title\s*$(.*?)^\s*:::\s*$', '', md_content, flags=re.MULTILINE | re.DOTALL
     )
 
-def cleanup_interpreted_text(md_content):
+def cleanup_interpreted_text_doc(md_content):
     pattern = r'`(.*?)\s*<(.*?)>`{\.interpreted-text\s+role=\"doc\"}'
+    return re.sub(pattern, r'[\1](\2)', md_content, flags=re.DOTALL)
+
+def cleanup_interpreted_text_ref(md_content):
+    pattern = r'`(.*?)\s*<(.*?)>`{\.interpreted-text\s+role=\"ref\"}'
     return re.sub(pattern, r'[\1](\2)', md_content, flags=re.DOTALL)
 
 def cleanup_md(md_folder_path):
@@ -79,7 +83,9 @@ def cleanup_md(md_folder_path):
 
                 md_content_titles_fixed = update_title(md_content)
                 md_content_titles_adm_fixed = fix_admonitions(md_content_titles_fixed)
-                md_content_final = cleanup_interpreted_text(md_content_titles_adm_fixed)
+                md_content_titles_adm_doc_fixed = cleanup_interpreted_text_doc(md_content_titles_adm_fixed)
+                md_content_titles_adm_docref_fixed = cleanup_interpreted_text_doc(md_content_titles_adm_doc_fixed)
+                md_content_final = cleanup_interpreted_text_ref(md_content_titles_adm_docref_fixed)
 
                 with open(md_file_path, 'w', encoding='utf-8') as md_file:
                     md_file.write(md_content_final)
