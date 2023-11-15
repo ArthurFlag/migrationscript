@@ -86,8 +86,7 @@ def extract_title(path):
     try:
         with open(path, "r", encoding="utf-8") as file:
             md_content = file.read()
-            # Use a regular expression to find the title in the file content
-            title_match = re.search(r"^title:\s(.*)$", md_content)
+            title_match = re.search(r'^---\s*[\s\S]*?title:\s*(.*?)\s*---', md_content)
             if title_match:
                 title = title_match.group(1)
                 return title
@@ -107,10 +106,10 @@ def fix_no_title_link(md_content, repo_path):
         path = match.group(1)
         print(f"  ---- Found link without name: {path}")
         if not os.path.isabs(path):
-            path = os.path.normpath(os.path.join(repo_path, path))
+            resolved_path = os.path.normpath(os.path.join(repo_path, path))
         else:
-            path = repo_path + path
-        title = extract_title(path)
+            resolved_path = repo_path + path
+        title = extract_title(resolved_path)
         newlink = f"[{title}]({path})"
         print(f"  ---- Turning into: {newlink}")
         md_content = re.sub(pattern_link_no_title, newlink, md_content)
