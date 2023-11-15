@@ -1,5 +1,3 @@
-# test_convert.py
-
 import unittest
 import os
 import tempfile
@@ -11,7 +9,7 @@ from convert.convert import (
     convert_rst_to_md,
     fix_admonitions,
     cleanup_interpreted_text,
-    cleanup,
+    cleanup_md,
     copy_folder_contents,
 )
 
@@ -29,26 +27,43 @@ class TestConvert(unittest.TestCase):
             file.write(content)
         return file_path
 
-
     def test_update_title(self):
-        # Create a test Markdown file
-        md_content = "# Test Title\nSome content here."
-        md_file = self.create_test_file(md_content, "test_file.md")
+        # Define file paths
+        input_file_path =  os.path.join(os.path.dirname(__file__), 'md_files/title_test.md')
+        expected_output_file_path =  os.path.join(os.path.dirname(__file__), 'md_files/title_test_expected.md')
 
-        # Call the update_title function
-        update_title(md_file, os.path.join(self.test_dir, "log.txt"))
+        # Read content from the input file
+        with open(input_file_path, 'r', encoding='utf-8') as input_file:
+            input_content = input_file.read()
 
-        # Assert that the title has been updated as expected
+        # Get the expected output content from the expected output file
+        with open(expected_output_file_path, 'r', encoding='utf-8') as expected_output_file:
+            expected_output_content = expected_output_file.read()
 
-    def test_convert_rst_to_md(self):
-        # Create a test reStructuredText file
-        rst_content = "Your test reStructuredText content here."
-        rst_file = self.create_test_file(rst_content, "test_file.rst")
+        # Apply the update_title function to the input content
+        updated_content = update_title(input_content)
 
-        # Call the convert_rst_to_md function
-        convert_rst_to_md(rst_file, os.path.join(self.test_dir, "output.md"), os.path.join(self.test_dir, "log.txt"))
+        # Assert that the updated content matches the expected output content
+        self.assertEqual(updated_content, expected_output_content)
 
-        # Assert that the Markdown conversion has been performed
+    def test_update_title_backticks(self):
+        # Define file paths
+        input_file_path =  os.path.join(os.path.dirname(__file__), 'md_files/title_backtick_test.md')
+        expected_output_file_path =  os.path.join(os.path.dirname(__file__), 'md_files/title_backtick_expected.md')
+
+        # Read content from the input file
+        with open(input_file_path, 'r', encoding='utf-8') as input_file:
+            input_content = input_file.read()
+
+        # Get the expected output content from the expected output file
+        with open(expected_output_file_path, 'r', encoding='utf-8') as expected_output_file:
+            expected_output_content = expected_output_file.read()
+
+        # Apply the update_title function to the input content
+        updated_content = update_title(input_content)
+
+        # Assert that the updated content matches the expected output content
+        self.assertEqual(updated_content, expected_output_content)
 
     def test_fix_admonitions(self):
         # Create a test Markdown file with admonitions
@@ -70,26 +85,7 @@ class TestConvert(unittest.TestCase):
 
         # Assert that interpreted text has been cleaned up
 
-    def test_cleanup(self):
-        # Create a test Markdown file
-        md_content = "# Test Title\nSome content here."
-        md_file = self.create_test_file(md_content, "test_file.md")
 
-        # Call the cleanup function
-        cleanup(self.test_dir, os.path.join(self.test_dir, "log.txt"))
-
-        # Assert that cleanup has been performed
-
-    def test_copy_folder_contents(self):
-        # Create a source folder with contents
-        source_folder = os.path.join(self.test_dir, 'source_folder')
-        os.makedirs(source_folder)
-        self.create_test_file('Test content', os.path.join('source_folder', 'test_file.txt'))
-
-        # Call the copy_folder_contents function
-        copy_folder_contents(source_folder, os.path.join(self.test_dir, 'destination_folder'))
-
-        # Assert that contents have been copied
 
 if __name__ == '__main__':
     unittest.main()

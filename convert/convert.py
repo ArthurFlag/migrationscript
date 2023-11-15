@@ -13,7 +13,7 @@ def main(source_path, destination_path, image_source_path, image_destination_pat
     log_file_path = "log.txt"
 
     delete_folder(destination_path)
-
+    print("⚒️ Converting to RST...")
     for root, dirs, files in os.walk(source_path):
         for file in files:
             if file.endswith(".rst"):
@@ -22,10 +22,10 @@ def main(source_path, destination_path, image_source_path, image_destination_pat
                 md_file_path = os.path.join(destination_path, relative_path[:-4] + ".md")
                 os.makedirs(os.path.dirname(md_file_path), exist_ok=True)
                 convert_rst_to_md(rst_file_path, md_file_path, os.path.join(destination_path, log_file_path))
-
-    cleanup(destination_path, log_file_path)
+    print("\n🧹 Cleaning up MD files...")
+    cleanup_md(destination_path)
     copy_folder_contents(image_source_path, image_destination_path)
-    print("Conversion done.")
+    print("✅ Conversion done.")
 
 def delete_folder(path):
     try:
@@ -37,11 +37,8 @@ def delete_folder(path):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def update_title(md_file_path, log_file_path):
-    with open(md_file_path, 'r', encoding='utf-8') as md_file:
-        content = md_file.read()
-
-    match = re.search(r'^#\s*(.*)', content, re.MULTILINE)
+def update_title(md_content):
+    match = re.search(r'^#\s*(.*)', md_content, re.MULTILINE)
     if match:
         title_without_backticks = match.group(1).replace('`', '')
 
@@ -50,58 +47,48 @@ def update_title(md_file_path, log_file_path):
 
         yaml_front_matter = f"---\ntitle: {title_without_backticks}\n---\n"
 
-        content_lines = content.split('\n', 1)
+        content_lines = md_content.split('\n', 1)
         if re.match(r'^#\s', content_lines[0]):
-            content = content_lines[1]
+            md_content = yaml_front_matter + content_lines[1]
 
-            with open(md_file_path, 'w', encoding='utf-8') as md_file:
-                md_file.write(yaml_front_matter)
-                md_file.write(content)
-
-    else:
-        with open(log_file_path, 'a', encoding='utf-8') as log:
-            log.write(f"Error in file: {md_file_path}\n"
-                      "No H1 title found. Please check and correct.\n\n")
+    return md_content
 
 def convert_rst_to_md(input_path, output_path, log_file):
     content = pypandoc.convert_file(input_path, 'md')
     with open(output_path, 'w', encoding='utf-8') as md_file:
         md_file.write(content)
 
-def fix_admonitions(md_file_path):
-    with open(md_file_path, 'r', encoding='utf-8') as md_file:
-        md_content = md_file.read()
-
-    updated_content = re.sub(
+def fix_admonitions(md_content):
+    return re.sub(
         r'\s+^\s*:::\s+title\s*$(.*?)^\s*:::\s*$', '', md_content, flags=re.MULTILINE | re.DOTALL
     )
 
-    with open(md_file_path, 'w', encoding='utf-8') as md_file:
-        md_file.write(updated_content)
-
-def cleanup_interpreted_text(md_file_path):
-    with open(md_file_path, 'r', encoding='utf-8') as md_file:
-        md_content = md_file.read()
-
+def cleanup_interpreted_text(md_content):
     pattern = r'`(.*?)\s*<(.*?)>`{\.interpreted-text\s+role=\"doc\"}'
-    md_content = re.sub(pattern, r'[\1](\2)', md_content, flags=re.DOTALL)
-    with open(md_file_path, 'w', encoding='utf-8') as md_file:
-        md_file.write(md_content)
+    return re.sub(pattern, r'[\1](\2)', md_content, flags=re.DOTALL)
 
-def cleanup(destination_path, log_file_path):
-    for root, dirs, files in os.walk(destination_path):
+def cleanup_md(md_folder_path):
+    for root, dirs, files in os.walk(md_folder_path):
         for file in files:
             if file.endswith(".md"):
                 md_file_path = os.path.join(root, file)
-                update_title(md_file_path, log_file_path)
-                fix_admonitions(md_file_path)
-                # cleanup_interpreted_text(md_file_path)
+                print(f'Working on {md_file_path}')
+
+                with open(md_file_path, 'r', encoding='utf-8') as md_file:
+                    md_content = md_file.read()
+
+                md_content_titles_fixed = update_title(md_content)
+                md_content_titles_adm_fixed = fix_admonitions(md_content_titles_fixed)
+                md_content_final = cleanup_interpreted_text(md_content_titles_adm_fixed)
+
+                with open(md_file_path, 'w', encoding='utf-8') as md_file:
+                    md_file.write(md_content_final)
 
 def copy_folder_contents(source_path, destination_path):
+    print("📸 Copying images...")
     try:
         os.makedirs(destination_path, exist_ok=True)
         shutil.copytree(source_path, destination_path, dirs_exist_ok=True)
-        print(f"Contents of {source_path} copied to {destination_path} successfully.")
     except Exception as e:
         print(f"An error occurred: {e}")
 
