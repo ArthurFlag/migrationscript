@@ -5,6 +5,7 @@ from io import StringIO
 from contextlib import redirect_stdout
 from convert.convert import *
 
+
 class TestConvert(unittest.TestCase):
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
@@ -84,12 +85,27 @@ class TestConvert(unittest.TestCase):
 
     def test_extract_title(self):
         input_file_path = os.path.join(
-            os.path.dirname(__file__), "md_files","extract_title.md"
+            os.path.dirname(__file__), "md_files", "extract_title.md"
         )
         extracted_title = extract_title(input_file_path)
-        self.assertEqual(
-            extracted_title, "Some title here"
+        self.assertEqual(extracted_title, "Some title here")
+
+    def test_fix_no_title_link(self):
+        input_file_path = os.path.join(
+            os.path.dirname(__file__), "md_files", "interpreted_doc_no_text_test.md"
         )
+        expected_output_file_path = os.path.join(
+            os.path.dirname(__file__), "md_files/interpreted_doc_no_text_expected.md"
+        )
+        with open(input_file_path, "r", encoding="utf-8") as input_file:
+            input_content = input_file.read()
+        repo_path =   os.path.join(os.path.dirname(__file__), "md_files")
+        fixed_content = fix_no_title_link(input_content, repo_path)
+        with open(
+            expected_output_file_path, "r", encoding="utf-8"
+        ) as expected_output_file:
+            expected_output_content = expected_output_file.read()
+        self.assertEqual(fixed_content, expected_output_content)
 
 if __name__ == "__main__":
     unittest.main()

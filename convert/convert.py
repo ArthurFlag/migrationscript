@@ -104,14 +104,14 @@ def fix_no_title_link(md_content, repo_path):
     match = re.search(pattern_link_no_title, md_content)
     if match:
         path = match.group(1)
-        print(f"  ---- Found link without name: {path}")
+        # print(f"  ---- Found link without name: {path}")
         if not os.path.isabs(path):
             resolved_path = os.path.normpath(os.path.join(repo_path, path))
         else:
             resolved_path = repo_path + path
         title = extract_title(resolved_path)
         newlink = f"[{title}]({path})"
-        print(f"  ---- Turning into: {newlink}")
+        # print(f"  ---- Turning into: {newlink}")
         md_content = re.sub(pattern_link_no_title, newlink, md_content)
     return md_content
 
