@@ -12,6 +12,11 @@ export IMG_DEST_PATH="${REPOS}/aiven-docs/docs/static/images"
 ```bash
 pip install -r requirements.txt
 
-python convert.py
+python convert/convert.py
 ```
 
+Test:
+
+```bash
+python -m unittest
+```
