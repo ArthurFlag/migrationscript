@@ -1,2 +1,2 @@
-pypandoc>=1.5
-click>=8.1.7
+click==8.1.7
+pandoc==2.3

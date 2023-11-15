@@ -9,7 +9,8 @@ import click
 @click.option('--destination_path',envvar='DEST_PATH')
 @click.option('--image_source_path',envvar='IMG_SRC_PATH')
 @click.option('--image_destination_path',envvar='IMG_DEST_PATH')
-def main(source_path, destination_path, image_source_path, image_destination_path):
+@click.option('--repo_path',envvar='REPO_PATH')
+def main(source_path, destination_path, image_source_path, image_destination_path, repo_path):
     log_file_path = "log.txt"
 
     delete_folder(destination_path)
@@ -23,7 +24,7 @@ def main(source_path, destination_path, image_source_path, image_destination_pat
                 os.makedirs(os.path.dirname(md_file_path), exist_ok=True)
                 convert_rst_to_md(rst_file_path, md_file_path, os.path.join(destination_path, log_file_path))
     print("\n🧹 Cleaning up MD files...")
-    cleanup_md(destination_path)
+    cleanup_md(destination_path,repo_path)
     copy_folder_contents(image_source_path, image_destination_path)
     print("✅ Conversion done.")
 
@@ -63,15 +64,47 @@ def fix_admonitions(md_content):
         r'\s+^\s*:::\s+title\s*$(.*?)^\s*:::\s*$', '', md_content, flags=re.MULTILINE | re.DOTALL
     )
 
-def cleanup_interpreted_text_doc(md_content):
-    pattern = r'`(.*?)\s*<(.*?)>`{\.interpreted-text\s+role=\"doc\"}'
-    return re.sub(pattern, r'[\1](\2)', md_content, flags=re.DOTALL)
+def cleanup_interpreted_text_doc(md_content, repo_path):
+    # look for `somepath`{.interpreted-text role="doc"}
+    pattern = r'`\s*([^`]+)\s*`\s*{\.interpreted-text\s+role=\"doc\"}'
+
+    def replace(match):
+        path = match.group(1)
+        print(f'path:{path}')
+        full_path = os.path.join(repo_path, path)
+
+        # Open the file located at the path
+        try:
+            with open(full_path, 'r', encoding='utf-8') as file:
+                # Read the content of the file
+                file_content = file.read()
+
+                # Use a regular expression to find the title in the file content
+                title_match = re.search(r'^title:\s*(.*?)(\n|$)', file_content)
+                if title_match:
+                    title = title_match.group(1)
+                else:
+                    # If no title is found, use a default value
+                    title = 'No Title Found'
+                    print(f'️⚠ No title found in {path}')
+
+                # Replace the matched string with the formatted title and path
+                return f'[{title}]({path})'
+        except FileNotFoundError:
+            # If the file is not found, return the original match
+            print(f'️⚠ File not found ({path})')
+            return match.group(0)
+
+    # Use re.sub() with a custom replacement function
+    updated_content = re.sub(pattern, replace, md_content)
+
+    return updated_content
 
 def cleanup_interpreted_text_ref(md_content):
     pattern = r'`(.*?)\s*<(.*?)>`{\.interpreted-text\s+role=\"ref\"}'
     return re.sub(pattern, r'[\1](\2)', md_content, flags=re.DOTALL)
 
-def cleanup_md(md_folder_path):
+def cleanup_md(md_folder_path, repo_path):
     for root, dirs, files in os.walk(md_folder_path):
         for file in files:
             if file.endswith(".md"):
@@ -83,8 +116,8 @@ def cleanup_md(md_folder_path):
 
                 md_content_titles_fixed = update_title(md_content)
                 md_content_titles_adm_fixed = fix_admonitions(md_content_titles_fixed)
-                md_content_titles_adm_doc_fixed = cleanup_interpreted_text_doc(md_content_titles_adm_fixed)
-                md_content_titles_adm_docref_fixed = cleanup_interpreted_text_doc(md_content_titles_adm_doc_fixed)
+                md_content_titles_adm_doc_fixed = cleanup_interpreted_text_doc(md_content_titles_adm_fixed,repo_path)
+                md_content_titles_adm_docref_fixed = cleanup_interpreted_text_ref(md_content_titles_adm_doc_fixed)
                 md_content_final = cleanup_interpreted_text_ref(md_content_titles_adm_docref_fixed)
 
                 with open(md_file_path, 'w', encoding='utf-8') as md_file:

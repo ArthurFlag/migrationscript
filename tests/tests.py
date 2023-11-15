@@ -92,6 +92,25 @@ class TestConvert(unittest.TestCase):
 
         self.assertEqual(updated_content, expected_output_content)
 
+    def test_cleanup_interpreted_text_doc(self):
+       input_file_path = os.path.join(
+            os.path.dirname(__file__), "md_files/interpreted_doc_text_test.md"
+        )
+        expected_output_file_path = os.path.join(
+            os.path.dirname(__file__), "md_files/interpreted_doc_text_expected.md"
+        )
+
+        with open(input_file_path, "r", encoding="utf-8") as input_file:
+            input_content = input_file.read()
+
+        with open(
+            expected_output_file_path, "r", encoding="utf-8"
+        ) as expected_output_file:
+            expected_output_content = expected_output_file.read()
+
+        updated_content = cleanup_interpreted_text_ref(input_content)
+
+        self.assertEqual(updated_content, expected_output_content)
 
 if __name__ == "__main__":
     unittest.main()
