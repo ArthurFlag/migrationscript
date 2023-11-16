@@ -86,19 +86,19 @@ def extract_title(path):
     try:
         with open(path, "r", encoding="utf-8") as file:
             md_content = file.read()
-            title_match = re.search(r'^---\s*[\s\S]*?title:\s*(.*?)\s*---', md_content)
+            title_match = re.search(r"^---\s*[\s\S]*?title:\s*(.*?)\s*---", md_content)
             if title_match:
                 title = title_match.group(1)
                 return title
             else:
                 raise LookupError(f"⚠ (extract_title No title found ({path})")
     except IsADirectoryError:
-      print(f"⚠️  Unexpected directory! Tried to fetch title of {path}")
+        print(f"⚠️  Unexpected directory! Tried to fetch title of {path}")
     except FileNotFoundError:
         raise FileNotFoundError(f"⚠️ File not found ({path})")
 
 
-def fix_no_title_link(md_content, repo_path):
+def fix_no_name_links(md_content, repo_path):
     # look for `somepath`{.interpreted-text role="doc"}
     pattern_link_no_title = r"`(((\.\.)|(\/)).*?)`{\.interpreted-text\s+role=\"doc\"}"
     match = re.search(pattern_link_no_title, md_content)
@@ -114,6 +114,20 @@ def fix_no_title_link(md_content, repo_path):
         # print(f"  ---- Turning into: {newlink}")
         md_content = re.sub(pattern_link_no_title, newlink, md_content)
     return md_content
+
+
+def fix_doc_links(md_content):
+    # fixes link like with a name
+    # look for `somename <somepath>`{.interpreted-text role="doc"}
+    md_content_updated = md_content
+    pattern_link = r"`(.*?)\s<(.*?)>`{\.interpreted-text\s*role=\"doc\"}"
+    match = re.search(pattern_link, md_content)
+    if match:
+        name = match.group(1)
+        path = match.group(2)
+        newlink = f"[{name}]({path})"
+        md_content_updated = re.sub(pattern_link, newlink, md_content)
+    return md_content_updated
 
 
 def cleanup_interpreted_text_ref(md_content):
@@ -146,9 +160,13 @@ def cleanup_md(md_folder_path, repo_path):
                 with open(md_file_path, "r", encoding="utf-8") as md_file2:
                     md_content = md_file2.read()
                     try:
-                        md_content = fix_no_title_link(md_content, repo_path)
+                        md_content_no_title_fixed = fix_no_name_links(
+                            md_content, repo_path
+                        )
+                        md_content_link_fixed = fix_doc_links(md_content_no_title_fixed)
+
                         with open(md_file_path, "w", encoding="utf-8") as md_file2:
-                            md_file2.write(md_content)
+                            md_file2.write(md_content_link_fixed)
                     except FileNotFoundError:
                         print(f"⚠️  File not found! ({md_file_path})")
                     except LookupError:
