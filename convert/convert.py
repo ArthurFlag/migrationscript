@@ -93,9 +93,9 @@ def extract_title(path):
             else:
                 raise LookupError(f"⚠ (extract_title No title found ({path})")
     except IsADirectoryError:
-      print(f"⚠ Directory! {path} is a dir")
+      print(f"⚠️  Unexpected directory! Tried to fetch title of {path}")
     except FileNotFoundError:
-        raise FileNotFoundError(f"⚠ (extract_title) File not found ({path})")
+        raise FileNotFoundError(f"⚠️ File not found ({path})")
 
 
 def fix_no_title_link(md_content, repo_path):
@@ -126,7 +126,7 @@ def cleanup_md(md_folder_path, repo_path):
         for file in files:
             if file.endswith(".md"):
                 md_file_path = os.path.join(root, file)
-                print(f"\nWorking on {md_file_path}")
+                # print(f"\nWorking on {md_file_path}")
 
                 with open(md_file_path, "r", encoding="utf-8") as md_file:
                     md_content = md_file.read()
