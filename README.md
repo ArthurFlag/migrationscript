@@ -5,11 +5,10 @@ Converts the devportal to a docusaurus-based setup.
 Declare the following env vars:
 
 ```bash
-export SRC_PATH="${REPOS}/devportal/docs"
-export DEST_PATH="${REPOS}/aiven-docs/docs/docs"
-export IMG_SRC_PATH="${REPOS}/devportal/images"
-export IMG_DEST_PATH="${REPOS}/aiven-docs/docs/static/images"
-export REPO_PATH="${REPOS}/devportal"
+export SRC_DOCS_PATH="${REPOS}/devportal/docs"
+export SRC_REPO_PATH="${REPOS}/devportal"
+export SRC_IMG_PATH="${REPOS}/devportal/images"
+export DEST_REPO_PATH="${REPOS}/aiven-docs"
 ```
 
 ```bash

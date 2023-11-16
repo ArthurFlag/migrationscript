@@ -6,17 +6,16 @@ import click
 
 
 @click.command()
-@click.option("--source_path", envvar="SRC_PATH")
-@click.option("--destination_path", envvar="DEST_PATH")
-@click.option("--image_source_path", envvar="IMG_SRC_PATH")
-@click.option("--image_destination_path", envvar="IMG_DEST_PATH")
-@click.option("--repo_path", envvar="REPO_PATH")
-def main(
-    source_path, destination_path, image_source_path, image_destination_path, repo_path
-):
+@click.option("--source_path", envvar="SRC_DOCS_PATH")
+@click.option("--destination_repo", envvar="DEST_REPO_PATH")
+@click.option("--image_source_path", envvar="SRC_IMG_PATH")
+@click.option("--src_repo_path", envvar="SRC_REPO_PATH")
+def main(source_path, destination_repo, image_source_path, src_repo_path):
     log_file_path = "log.txt"
+    image_destination_path = os.path.join(destination_repo, "static/images")
+    destination_docs_path = os.path.join(destination_repo, "docs")
 
-    delete_folder(destination_path)
+    delete_folder(destination_docs_path)
     print("⚒️ Converting to RST...")
     for root, dirs, files in os.walk(source_path):
         for file in files:
@@ -24,18 +23,28 @@ def main(
                 rst_file_path = os.path.join(root, file)
                 relative_path = os.path.relpath(rst_file_path, source_path)
                 md_file_path = os.path.join(
-                    destination_path, relative_path[:-4] + ".md"
+                    destination_docs_path, relative_path[:-4] + ".md"
                 )
                 os.makedirs(os.path.dirname(md_file_path), exist_ok=True)
                 convert_rst_to_md(
                     rst_file_path,
                     md_file_path,
-                    os.path.join(destination_path, log_file_path),
+                    os.path.join(destination_docs_path, log_file_path),
                 )
     print("\n🧹 Cleaning up MD files...")
-    cleanup_md(destination_path, repo_path)
+    cleanup_md(destination_docs_path, src_repo_path)
+    print("\n🧹 Delete complex files for now...")
+    delete_complex_files(destination_docs_path)
     copy_folder_contents(image_source_path, image_destination_path)
     print("✅ Conversion done.")
+
+
+def delete_file(file_path):
+    try:
+        os.remove(file_path)
+        print(f"File deleted: {file_path}")
+    except FileNotFoundError:
+        print(f"File not found: {file_path}")
 
 
 def delete_folder(path):
@@ -98,17 +107,17 @@ def extract_title(path):
         raise FileNotFoundError(f"⚠️ File not found ({path})")
 
 
-def fix_no_name_links(md_content, repo_path):
-    # look for `somepath`{.interpreted-text role="doc"}
-    pattern_link_no_title = r"`(((\.\.)|(\/)).*?)`{\.interpreted-text\s+role=\"doc\"}"
+def fix_no_name_links(md_content, src_repo_path):
+    # look for `somepath`{.interpreted-text role=".*?"}
+    pattern_link_no_title = r"`(((\.\.)|(\/)).*?)`{\.interpreted-text\s+role=\".*?\"}"
     match = re.search(pattern_link_no_title, md_content)
     if match:
         path = match.group(1)
         # print(f"  ---- Found link without name: {path}")
         if not os.path.isabs(path):
-            resolved_path = os.path.normpath(os.path.join(repo_path, path))
+            resolved_path = os.path.normpath(os.path.join(src_repo_path, path))
         else:
-            resolved_path = repo_path + path
+            resolved_path = src_repo_path + path
         title = extract_title(resolved_path)
         newlink = f"[{title}]({path})"
         # print(f"  ---- Turning into: {newlink}")
@@ -135,7 +144,7 @@ def cleanup_interpreted_text_ref(md_content):
     return re.sub(pattern, r"[\1](\2)", md_content, flags=re.DOTALL)
 
 
-def cleanup_md(md_folder_path, repo_path):
+def cleanup_md(md_folder_path, src_repo_path):
     for root, dirs, files in os.walk(md_folder_path):
         for file in files:
             if file.endswith(".md"):
@@ -161,7 +170,7 @@ def cleanup_md(md_folder_path, repo_path):
                     md_content = md_file2.read()
                     try:
                         md_content_no_title_fixed = fix_no_name_links(
-                            md_content, repo_path
+                            md_content, src_repo_path
                         )
                         md_content_link_fixed = fix_doc_links(md_content_no_title_fixed)
 
@@ -171,6 +180,13 @@ def cleanup_md(md_folder_path, repo_path):
                         print(f"⚠️  File not found! ({md_file_path})")
                     except LookupError:
                         print(f"⚠️  Title not found! ({md_file_path})")
+
+
+def delete_complex_files(destination_repo):
+    # delete files that we need to handle better later
+    community_folder = os.path.join(destination_repo, "community")
+    delete_folder(community_folder)
+    delete_file(destination_repo+"community.md")
 
 
 def copy_folder_contents(source_path, destination_path):
