@@ -194,7 +194,11 @@ def process_custom_markup(md_content):
     md_content = re.sub(r"^::: {\.(.*?) .*",r"::: \1",md_content, flags=re.MULTILINE)
     md_content = re.sub(r"\[(.*)\]\{\..*?\}",r"`\1`",md_content, flags=re.MULTILINE)
     md_content = md_content.replace("<hacks@Aiven.io>","[hacks@aiven.io](mailto:hacks@aiven.io)")
-
+    md_content = md_content.replace("<sales@Aiven.io>","[sales@aiven.io](mailto:sales@aiven.io)")
+    md_content = md_content.replace("<support@Aiven.io>","[support@aiven.io](mailto:support@aiven.io)")
+    
+    md_content = re.sub(r"<(https://.*)>",r"[\1](\1)",md_content,flags=re.MULTILINE)
+      
     return md_content
 
 def delete_complex_files(destination_repo):

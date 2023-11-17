@@ -18,7 +18,8 @@ with us.
 **Twitter** We love to chat! Tell us what you\'re building with Aiven!
 
 ::: {.button-link align="right" color="primary" outline=""}
-<https://twitter.com/aiven_io>
+
+<https://aiven.io/things>
 
 To the Twitterverse
 :::
@@ -28,13 +29,13 @@ To the Twitterverse
 **Blog** To read tech news, tutorials, and updates on what we\'re up to.
 
 ::: {.button-link align="right" color="primary" outline=""}
-<https://aiven.io/blog>
 
 Check out the [Aiven Console](https://console.aiven.io) for your Aiven
 web interface. New accounts get a free trial!
 
 this [destination]{.title-ref} this
 
+<support@Aiven.io>
 ------------------------------------------------------------------------
 
 ## Documentation contributors
