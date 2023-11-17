@@ -31,8 +31,8 @@ def main(source_path, destination_repo, image_source_path, src_repo_path):
                     md_file_path,
                     os.path.join(destination_docs_path, log_file_path),
                 )
-    # print("\n🧹 Cleaning up MD files...")
-    # cleanup_md(destination_docs_path, src_repo_path)
+    print("\n🧹 Cleaning up MD files...")
+    cleanup_md(destination_docs_path, src_repo_path)
     # print("\n🧹 Delete complex files for now...")
     # delete_complex_files(destination_docs_path)
     # copy_folder_contents(image_source_path, image_destination_path)
@@ -89,6 +89,15 @@ def fix_admonitions(md_content):
         flags=re.MULTILINE | re.DOTALL,
     )
 
+def fix_standalone_links(md_content):
+    # <somelink>
+    return re.sub(
+        r"^\<(.*?)\>$",
+        r"[](\1)",
+        md_content,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+
 
 def extract_title(path):
     # Open the file located at the path
@@ -104,7 +113,7 @@ def extract_title(path):
     except IsADirectoryError:
         print(f"⚠️  Unexpected directory! Tried to fetch title of {path}")
     except FileNotFoundError:
-        raise FileNotFoundError(f"⚠️ File not found ({path})")
+        print(f"⚠️  File not found ({path})")
 
 
 def fix_no_name_links(md_content, src_repo_path):
@@ -142,6 +151,8 @@ def cleanup_md(md_folder_path, src_repo_path):
                     md_content = update_title(md_content)
                     md_content = fix_admonitions(md_content)
                     md_content = fix_full_links(md_content)
+                    md_content = fix_standalone_links(md_content)
+                    md_content = process_custom_markup(md_content)
                     # md_content_no_grids = process_grids(md_content_titles_adm_docref_fixed)
 
                 # write the changes
@@ -159,16 +170,10 @@ def cleanup_md(md_folder_path, src_repo_path):
 
                 with open(md_file_path, "r", encoding="utf-8") as md_file:
                     md_content = md_file.read()
-                    try:
-                        md_content = fix_no_name_links(md_content, src_repo_path)
+                    md_content = fix_no_name_links(md_content, src_repo_path)
 
-                        with open(md_file_path, "w", encoding="utf-8") as md_file:
-                            md_file.write(md_content)
-                    except FileNotFoundError:
-                        print(f"⚠️  File not found! ({md_file_path})")
-                    except LookupError:
-                        print(f"⚠️  Title not found! ({md_file_path})")
-
+                with open(md_file_path, "w", encoding="utf-8") as md_file:
+                    md_file.write(md_content)
 
 def process_grids(md_content):
     # deletes grid instructions from the content
@@ -182,6 +187,12 @@ def process_grids(md_content):
     )
     return content_final
 
+def process_custom_markup(md_content):
+    # prevents build error on custom markup. Should be solved properly later.
+    # ex  "[destination]{.title-ref}"" or ""::: {.grid...}"
+    md_content = re.sub(r"^::: {\.(.*?) .*",r"::: \1",md_content, flags=re.MULTILINE)
+    md_content = re.sub(r"\[(.*)\]\{\..*?\}",r"`\1`",md_content, flags=re.MULTILINE)
+    return md_content
 
 def delete_complex_files(destination_repo):
     # delete files that we need to handle better later
