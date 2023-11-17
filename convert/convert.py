@@ -190,8 +190,11 @@ def process_grids(md_content):
 def process_custom_markup(md_content):
     # prevents build error on custom markup. Should be solved properly later.
     # ex  "[destination]{.title-ref}"" or ""::: {.grid...}"
+
     md_content = re.sub(r"^::: {\.(.*?) .*",r"::: \1",md_content, flags=re.MULTILINE)
     md_content = re.sub(r"\[(.*)\]\{\..*?\}",r"`\1`",md_content, flags=re.MULTILINE)
+    md_content = md_content.replace("<hacks@Aiven.io>","[hacks@aiven.io](mailto:hacks@aiven.io)")
+
     return md_content
 
 def delete_complex_files(destination_repo):

@@ -2,6 +2,12 @@
 title: Aiven community
 ---
 
+12. When you find the solution, email a screenshot to <hacks@Aiven.io>
+1.  Open the Aiven client, and log in:
+
+
+        avn user login <you@example.com> --token
+
 There are lots of other ways to learn more about Aiven, and interact
 with us.
 
