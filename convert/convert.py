@@ -31,11 +31,11 @@ def main(source_path, destination_repo, image_source_path, src_repo_path):
                     md_file_path,
                     os.path.join(destination_docs_path, log_file_path),
                 )
-    print("\n🧹 Cleaning up MD files...")
-    cleanup_md(destination_docs_path, src_repo_path)
-    print("\n🧹 Delete complex files for now...")
-    delete_complex_files(destination_docs_path)
-    copy_folder_contents(image_source_path, image_destination_path)
+    # print("\n🧹 Cleaning up MD files...")
+    # cleanup_md(destination_docs_path, src_repo_path)
+    # print("\n🧹 Delete complex files for now...")
+    # delete_complex_files(destination_docs_path)
+    # copy_folder_contents(image_source_path, image_destination_path)
     print("✅ Conversion done.")
 
 
@@ -125,23 +125,9 @@ def fix_no_name_links(md_content, src_repo_path):
     return md_content
 
 
-def fix_doc_links(md_content):
-    # fixes link like with a name
-    # look for `somename <somepath>`{.interpreted-text role="doc"}
-    md_content_updated = md_content
-    pattern_link = r"`(.*?)\s<(.*?)>`{\.interpreted-text\s*role=\"doc\"}"
-    match = re.search(pattern_link, md_content)
-    if match:
-        name = match.group(1)
-        path = match.group(2)
-        newlink = f"[{name}]({path})"
-        md_content_updated = re.sub(pattern_link, newlink, md_content)
-    return md_content_updated
-
-
-def cleanup_interpreted_text_ref(md_content):
-    pattern = r"`(.*?)\s*<(.*?)>`{\.interpreted-text\s+role=\"ref\"}"
-    return re.sub(pattern, r"[\1](\2)", md_content, flags=re.DOTALL)
+def fix_full_links(md_content):
+    pattern = r"`(.*?)\s*<(.*?)>`{\.interpreted-text\s+role=\"...\"}"
+    return re.sub(pattern, r"[\1](\2)", md_content)
 
 
 def cleanup_md(md_folder_path, src_repo_path):
@@ -149,44 +135,59 @@ def cleanup_md(md_folder_path, src_repo_path):
         for file in files:
             if file.endswith(".md"):
                 md_file_path = os.path.join(root, file)
-                # print(f"\nWorking on {md_file_path}")
+                print(f"Working on {md_file_path}")
 
                 with open(md_file_path, "r", encoding="utf-8") as md_file:
                     md_content = md_file.read()
-                    md_content_titles_fixed = update_title(md_content)
-                    md_content_titles_adm_fixed = fix_admonitions(
-                        md_content_titles_fixed
-                    )
-                    md_content_titles_adm_docref_fixed = cleanup_interpreted_text_ref(
-                        md_content_titles_adm_fixed
-                    )
-                    md_content_final = cleanup_interpreted_text_ref(
-                        md_content_titles_adm_docref_fixed
-                    )
+                    md_content = update_title(md_content)
+                    md_content = fix_admonitions(md_content)
+                    md_content = fix_full_links(md_content)
+                    # md_content_no_grids = process_grids(md_content_titles_adm_docref_fixed)
+
+                # write the changes
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
-                    md_file.write(md_content_final)
+                    print(f"Wrote {md_file_path}")
+                    md_file.write(md_content)
 
-                with open(md_file_path, "r", encoding="utf-8") as md_file2:
-                    md_content = md_file2.read()
+    # take a second round for link and title resolution
+    print("Second pass...")
+    for root, dirs, files in os.walk(md_folder_path):
+        for file in files:
+            if file.endswith(".md"):
+                md_file_path = os.path.join(root, file)
+                print(f"Working on {md_file_path}")
+
+                with open(md_file_path, "r", encoding="utf-8") as md_file:
+                    md_content = md_file.read()
                     try:
-                        md_content_no_title_fixed = fix_no_name_links(
-                            md_content, src_repo_path
-                        )
-                        md_content_link_fixed = fix_doc_links(md_content_no_title_fixed)
+                        md_content = fix_no_name_links(md_content, src_repo_path)
 
-                        with open(md_file_path, "w", encoding="utf-8") as md_file2:
-                            md_file2.write(md_content_link_fixed)
+                        with open(md_file_path, "w", encoding="utf-8") as md_file:
+                            md_file.write(md_content)
                     except FileNotFoundError:
                         print(f"⚠️  File not found! ({md_file_path})")
                     except LookupError:
                         print(f"⚠️  Title not found! ({md_file_path})")
 
 
+def process_grids(md_content):
+    # deletes grid instructions from the content
+    card_declaration = r"`^::: \{\.grid-item-card.*?\n(.*?)^:::$\n`"
+    grid_declaration = r"`^::: grid\n.*?$\n(.*?)^:::$`"
+    content_fixed = re.sub(
+        card_declaration, "", md_content, flags=re.MULTILINE | re.DOTALL
+    )
+    content_final = re.sub(
+        grid_declaration, "", content_fixed, flags=re.MULTILINE | re.DOTALL
+    )
+    return content_final
+
+
 def delete_complex_files(destination_repo):
     # delete files that we need to handle better later
     community_folder = os.path.join(destination_repo, "community")
     delete_folder(community_folder)
-    delete_file(destination_repo+"community.md")
+    delete_file(destination_repo + "community.md")
 
 
 def copy_folder_contents(source_path, destination_path):

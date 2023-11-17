@@ -39,7 +39,7 @@ class TestConvert(unittest.TestCase):
 
     def test_update_title_backticks(self):
         input_file_path = os.path.join(
-            os.path.dirname(__file__), "md_files/title_backtick_test.md"
+            os.path.dirname(__file__), "md_files/title_backtick.md"
         )
         expected_output_file_path = os.path.join(
             os.path.dirname(__file__), "md_files/title_backtick_expected.md"
@@ -63,12 +63,12 @@ class TestConvert(unittest.TestCase):
 
         fix_admonitions(md_file)
 
-    def test_cleanup_interpreted_text_ref(self):
+    def test_fix_full_links(self):
         input_file_path = os.path.join(
-            os.path.dirname(__file__), "md_files/interpreted_ref_text_test.md"
+            os.path.dirname(__file__), "md_files/full_links.md"
         )
         expected_output_file_path = os.path.join(
-            os.path.dirname(__file__), "md_files/interpreted_ref_text_expected.md"
+            os.path.dirname(__file__), "md_files/full_links_expected.md"
         )
 
         with open(input_file_path, "r", encoding="utf-8") as input_file:
@@ -79,7 +79,7 @@ class TestConvert(unittest.TestCase):
         ) as expected_output_file:
             expected_output_content = expected_output_file.read()
 
-        updated_content = cleanup_interpreted_text_ref(input_content)
+        updated_content = fix_full_links(input_content)
 
         self.assertEqual(updated_content, expected_output_content)
 
@@ -92,14 +92,14 @@ class TestConvert(unittest.TestCase):
 
     def test_fix_no_title_link(self):
         input_file_path = os.path.join(
-            os.path.dirname(__file__), "md_files", "interpreted_doc_no_text_test.md"
+            os.path.dirname(__file__), "md_files", "no_name_links.md"
         )
         expected_output_file_path = os.path.join(
-            os.path.dirname(__file__), "md_files/interpreted_doc_no_text_expected.md"
+            os.path.dirname(__file__), "md_files/no_name_links_expected.md"
         )
         with open(input_file_path, "r", encoding="utf-8") as input_file:
             input_content = input_file.read()
-        repo_path =   os.path.join(os.path.dirname(__file__), "md_files")
+        repo_path = os.path.join(os.path.dirname(__file__), "md_files")
         fixed_content = fix_no_name_links(input_content, repo_path)
         with open(
             expected_output_file_path, "r", encoding="utf-8"
@@ -107,22 +107,6 @@ class TestConvert(unittest.TestCase):
             expected_output_content = expected_output_file.read()
         self.assertEqual(fixed_content, expected_output_content)
 
-    def test_fix_doc_links(self):
-        input_file_path = os.path.join(
-            os.path.dirname(__file__), "md_files", "interpreted_doc_no_text_test.md"
-        )
-        expected_output_file_path = os.path.join(
-            os.path.dirname(__file__), "md_files/interpreted_doc_no_text_expected.md"
-        )
-        with open(input_file_path, "r", encoding="utf-8") as input_file:
-            input_content = input_file.read()
-        repo_path =   os.path.join(os.path.dirname(__file__), "md_files")
-        fixed_content = fix_no_name_links(input_content, repo_path)
-        with open(
-            expected_output_file_path, "r", encoding="utf-8"
-        ) as expected_output_file:
-            expected_output_content = expected_output_file.read()
-        self.assertEqual(fixed_content, expected_output_content)
 
 if __name__ == "__main__":
     unittest.main()

@@ -19,3 +19,12 @@ role="doc"}.
     visiting **IAM dashboard** then click in **Users**, open the
     **Security credentials** tab, and choose **Create access key**.
     Click on **Download** as you will need this shortly.
+
+Or, you can use the `avn`
+`command-line tool </docs/tools/cli>`{.interpreted-text role="doc"} with
+the following command:
+
+    avn service user-creds-download --username <username> <service-name>
+
+Read more: `../concepts/tls-ssl-certificates`{.interpreted-text
+role="doc"}
