@@ -129,7 +129,7 @@ class TestConvert(unittest.TestCase):
             os.path.dirname(__file__), "md_files", "custom_markup.md"
         )
         expected_output_file_path = os.path.join(
-            os.path.dirname(__file__), "md_files","custom_markup_expected.md"
+            os.path.dirname(__file__), "md_files", "custom_markup_expected.md"
         )
         with open(input_file_path, "r", encoding="utf-8") as input_file:
             input_content = input_file.read()
@@ -140,6 +140,34 @@ class TestConvert(unittest.TestCase):
             expected_output_content = expected_output_file.read()
 
         self.assertEqual(fixed_content, expected_output_content)
+
+    def test_anchor_links(self):
+        input_file_path = os.path.join(
+            os.path.dirname(__file__), "md_files", "anchor_links.md"
+        )
+        expected_output_file_path = os.path.join(
+            os.path.dirname(__file__), "md_files", "anchor_links_expected.md"
+        )
+        with open(input_file_path, "r", encoding="utf-8") as input_file:
+            input_content = input_file.read()
+        fixed_content = fix_anchor_links(input_content)
+        with open(
+            expected_output_file_path, "r", encoding="utf-8"
+        ) as expected_output_file:
+            expected_output_content = expected_output_file.read()
+
+        self.assertEqual(fixed_content, expected_output_content)
+
+    def test_titles_with_anchors_extraction(self):
+        input_file_path = os.path.join(
+            os.path.dirname(__file__), "md_files", "title_extractions.md"
+        )
+        with open(input_file_path, "r", encoding="utf-8") as input_file:
+            input_content = input_file.read()
+        extracted = extract_titles_with_anchors(input_content)
+        expected = {"some-anchor": "A title with anchor", "anchor" : "Another title"}
+        self.assertEqual(extracted, expected)
+
 
 if __name__ == "__main__":
     unittest.main()

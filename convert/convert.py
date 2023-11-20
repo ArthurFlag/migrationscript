@@ -37,8 +37,17 @@ def main(source_path, destination_repo, image_source_path, src_repo_path):
     # delete_complex_files(destination_docs_path)
     # copy_folder_contents(image_source_path, image_destination_path)
     print("✅ Conversion done.")
+    nextsteps()
 
-
+def nextsteps():
+    out ="""
+Now take care of these topics manually:
+- https://docs.aiven.io/docs/products/clickhouse/howto/data-service-integration
+- https://docs.aiven.io/docs/products/mysql/concepts/max-number-of-connections
+"""
+    print(out)
+    
+    
 def delete_file(file_path):
     try:
         os.remove(file_path)
@@ -150,6 +159,7 @@ def cleanup_md(md_folder_path, src_repo_path):
                     md_content = md_file.read()
                     md_content = update_title(md_content)
                     md_content = fix_admonitions(md_content)
+                    md_content = fix_anchor_links(md_content)
                     md_content = fix_full_links(md_content)
                     md_content = fix_standalone_links(md_content)
                     md_content = process_custom_markup(md_content)
@@ -215,6 +225,37 @@ def copy_folder_contents(source_path, destination_path):
         shutil.copytree(source_path, destination_path, dirs_exist_ok=True)
     except Exception as e:
         print(f"An error occurred: {e}")
+
+def fix_anchor_links(md_content):
+    # Define a regular expression pattern to find occurrences of {#...}
+    pattern = r'`([^<>]+)`{\.interpreted-text role=\"ref\"}'
+    title_anchor_dict = extract_titles_with_anchors(md_content)
+    # Define the substitution function
+    def replace_match(match):
+        title = title_anchor_dict.get(match.group(1), match.group(1))
+        return f'[{title}](#{match.group(1)})'
+
+    # Use re.sub to replace the matches with the dictionary values
+    updated_content = re.sub(pattern, replace_match, md_content)
+
+    return updated_content
+
+def extract_titles_with_anchors(md_content):
+    
+    title_pattern = r'#+ (.+?) \{#(.+?)\}'
+    title_matches = re.findall(title_pattern, md_content)
+    titles_and_anchors = {anchor: title for title, anchor in title_matches}
+
+    return titles_and_anchors
+
+
+# TODO
+# find `delete`{.interpreted-text role="bdg-secondary"}
+# `console-authentication`{.interpreted-text role="ref"} (same page link)
+# `avn_service_plan`{.interpreted-text role="ref"} 
+# ::: {.literalinclude language="properties"}
+# variables
+# `api/examples`{.interpreted-text role="doc"}
 
 
 if __name__ == "__main__":
