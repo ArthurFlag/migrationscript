@@ -12,10 +12,14 @@ import click
 @click.option("--src_repo_path", envvar="SRC_REPO_PATH")
 def main(source_path, destination_repo, image_source_path, src_repo_path):
     log_file_path = "log.txt"
+    include_source_path = os.path.join(src_repo_path, "includes")
+    include_destination_path = os.path.join(destination_repo, "static/includes")
     image_destination_path = os.path.join(destination_repo, "static/images")
     destination_docs_path = os.path.join(destination_repo, "docs")
 
     delete_folder(destination_docs_path)
+    copy_folder_contents(include_source_path, include_destination_path)
+    copy_folder_contents(image_source_path, image_destination_path)
     print("⚒️ Converting to RST...")
     for root, dirs, files in os.walk(source_path):
         for file in files:
@@ -32,10 +36,8 @@ def main(source_path, destination_repo, image_source_path, src_repo_path):
                     os.path.join(destination_docs_path, log_file_path),
                 )
     print("\n🧹 Cleaning up MD files...")
-    cleanup_md(destination_docs_path, src_repo_path)
-    # print("\n🧹 Delete complex files for now...")
+    cleanup_md(destination_docs_path, destination_repo)
     # delete_complex_files(destination_docs_path)
-    # copy_folder_contents(image_source_path, image_destination_path)
     print("✅ Conversion done.")
     nextsteps()
 
@@ -44,6 +46,7 @@ def nextsteps():
 Now take care of these topics manually:
 - https://docs.aiven.io/docs/products/clickhouse/howto/data-service-integration
 - https://docs.aiven.io/docs/products/mysql/concepts/max-number-of-connections
+- /Users/arthurflageul/repos/aiven-docs/docs/products/postgresql/reference/list-of-extensions.md
 """
     print(out)
     
@@ -110,6 +113,10 @@ def fix_standalone_links(md_content):
 
 def extract_title(path):
     # Open the file located at the path
+    if not os.path.splitext(path)[1]:
+      path += ".md"
+
+    print(f"extracting title from {path}")
     try:
         with open(path, "r", encoding="utf-8") as file:
             md_content = file.read()
@@ -125,7 +132,7 @@ def extract_title(path):
         print(f"⚠️  File not found ({path})")
 
 
-def fix_no_name_links(md_content, src_repo_path):
+def fix_no_name_links(md_content, repo_path):
     # look for `somepath`{.interpreted-text role=".*?"}
     pattern_link_no_title = r"`(((\.\.)|(\/)).*?)`{\.interpreted-text\s+role=\".*?\"}"
     match = re.search(pattern_link_no_title, md_content)
@@ -133,12 +140,15 @@ def fix_no_name_links(md_content, src_repo_path):
         path = match.group(1)
         # print(f"  ---- Found link without name: {path}")
         if not os.path.isabs(path):
-            resolved_path = os.path.normpath(os.path.join(src_repo_path, path))
+            resolved_path = os.path.normpath(os.path.join(repo_path, path))
         else:
-            resolved_path = src_repo_path + path
-        title = extract_title(resolved_path)
+            resolved_path = repo_path + path
+        try:
+            title = extract_title(resolved_path)
+        except LookupError:
+            print(f"⚠️ Couldn't find title in {path}. Using None.")
+            title = "None"
         newlink = f"[{title}]({path})"
-        # print(f"  ---- Turning into: {newlink}")
         md_content = re.sub(pattern_link_no_title, newlink, md_content)
     return md_content
 
@@ -148,7 +158,7 @@ def fix_full_links(md_content):
     return re.sub(pattern, r"[\1](\2)", md_content)
 
 
-def cleanup_md(md_folder_path, src_repo_path):
+def cleanup_md(md_folder_path, destination_repo_path):
     for root, dirs, files in os.walk(md_folder_path):
         for file in files:
             if file.endswith(".md"):
@@ -180,7 +190,7 @@ def cleanup_md(md_folder_path, src_repo_path):
 
                 with open(md_file_path, "r", encoding="utf-8") as md_file:
                     md_content = md_file.read()
-                    md_content = fix_no_name_links(md_content, src_repo_path)
+                    md_content = fix_no_name_links(md_content, destination_repo_path)
 
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
                     md_file.write(md_content)
@@ -219,7 +229,7 @@ def delete_complex_files(destination_repo):
 
 
 def copy_folder_contents(source_path, destination_path):
-    print("📸 Copying images...")
+    print(f"📸 Copying {source_path} into {destination_path}...")
     try:
         os.makedirs(destination_path, exist_ok=True)
         shutil.copytree(source_path, destination_path, dirs_exist_ok=True)
@@ -249,13 +259,19 @@ def extract_titles_with_anchors(md_content):
     return titles_and_anchors
 
 
+
+      
+
 # TODO
 # find `delete`{.interpreted-text role="bdg-secondary"}
 # `console-authentication`{.interpreted-text role="ref"} (same page link)
 # `avn_service_plan`{.interpreted-text role="ref"} 
 # ::: {.literalinclude language="properties"}
 # variables
-# `api/examples`{.interpreted-text role="doc"}
+# check docs/products/kafka/howto/prevent-full-disks.md
+# # `api/examples`{.interpreted-text role="doc"}
+# ::: {#Terminology MM2ClusterAliasducts/opensearch/howto/connect-with-pytho}
+# 
 
 
 if __name__ == "__main__":
