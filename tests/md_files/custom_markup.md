@@ -52,3 +52,6 @@ different open source technologies.
 
 -   [Catch the bus (Clickhouse)](/docs/community/challenge/catch-the-bus)
 -   [Rolling challenge (Apache Kafka & Flink)](/docs/community/challenge/the-rolling-challenge)
+
+::: tableofcontents
+:::
