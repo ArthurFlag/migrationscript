@@ -10,13 +10,13 @@ If you prefer to follow a video tutorial, check out this short video on
 
 ## Getting started
 
-::: tip
+:::tip
 To learn how to create an authentication token refer to
 `../platform/howto/create_authentication_token`{.interpreted-text
 role="doc"}
 :::
 
-::: warning
+:::warning
 To learn how to create an authentication token refer to
 `../platform/howto/create_authentication_token`{.interpreted-text
 role="doc"}

@@ -16,11 +16,29 @@ def main(source_path, destination_repo, image_source_path, src_repo_path):
     include_destination_path = os.path.join(destination_repo, "static/includes")
     image_destination_path = os.path.join(destination_repo, "static/images")
     destination_docs_path = os.path.join(destination_repo, "docs")
-
+    
+    print("🧹 Deleting output...")
     delete_folder(destination_docs_path)
-    copy_folder_contents(include_source_path, include_destination_path)
+    delete_folder(include_destination_path) 
     copy_folder_contents(image_source_path, image_destination_path)
-    print("⚒️ Converting to RST...")
+    
+    print(f"⚒️ Converting {include_source_path}...")
+    for root, dirs, files in os.walk(include_source_path):
+        for file in files:
+            if file.endswith(".rst"):
+                rst_file_path = os.path.join(root, file)
+                relative_path = os.path.relpath(rst_file_path, include_source_path)
+                md_file_path = os.path.join(
+                    include_destination_path, relative_path[:-4] + ".md"
+                )
+                os.makedirs(os.path.dirname(md_file_path), exist_ok=True)
+                convert_rst_to_md(
+                    rst_file_path,
+                    md_file_path,
+                    os.path.join(include_destination_path, log_file_path),
+                )
+                
+    print(f"⚒️ Converting {source_path}...")
     for root, dirs, files in os.walk(source_path):
         for file in files:
             if file.endswith(".rst"):
@@ -94,12 +112,19 @@ def convert_rst_to_md(input_path, output_path, log_file):
 
 
 def fix_admonitions(md_content):
-    return re.sub(
+    md_content = re.sub(
         r"\s+^\s*:::\s+title\s*$(.*?)^\s*:::\s*$",
         "",
         md_content,
         flags=re.MULTILINE | re.DOTALL,
     )
+    md_content =re.sub(
+        r"::: (\w+)", # ::: tip
+        ":::\1",
+        md_content,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+    return md_content
 
 def fix_standalone_links(md_content):
     # <somelink>
@@ -116,7 +141,7 @@ def extract_title(path):
     if not os.path.splitext(path)[1]:
       path += ".md"
 
-    print(f"extracting title from {path}")
+    # print(f"extracting title from {path}")
     try:
         with open(path, "r", encoding="utf-8") as file:
             md_content = file.read()
@@ -157,13 +182,16 @@ def fix_full_links(md_content):
     pattern = r"`(.*?)\s*<(.*?)>`{\.interpreted-text\s+role=\"...\"}"
     return re.sub(pattern, r"[\1](\2)", md_content)
 
-
+def fix_literal_includes(md_content):
+    pattern = r"::: {\.literalinclude language=\"(.*)\"}"
+    return re.sub(pattern,r"::: literalinclude \1", md_content)
+    
 def cleanup_md(md_folder_path, destination_repo_path):
     for root, dirs, files in os.walk(md_folder_path):
         for file in files:
             if file.endswith(".md"):
                 md_file_path = os.path.join(root, file)
-                print(f"Working on {md_file_path}")
+                # print(f"Working on {md_file_path}")
 
                 with open(md_file_path, "r", encoding="utf-8") as md_file:
                     md_content = md_file.read()
@@ -172,12 +200,13 @@ def cleanup_md(md_folder_path, destination_repo_path):
                     md_content = fix_anchor_links(md_content)
                     md_content = fix_full_links(md_content)
                     md_content = fix_standalone_links(md_content)
+                    md_content = fix_literal_includes(md_content)
                     md_content = process_custom_markup(md_content)
                     # md_content_no_grids = process_grids(md_content_titles_adm_docref_fixed)
 
                 # write the changes
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
-                    print(f"Wrote {md_file_path}")
+                    # print(f"Wrote {md_file_path}")
                     md_file.write(md_content)
 
     # take a second round for link and title resolution
@@ -186,7 +215,7 @@ def cleanup_md(md_folder_path, destination_repo_path):
         for file in files:
             if file.endswith(".md"):
                 md_file_path = os.path.join(root, file)
-                print(f"Working on {md_file_path}")
+                # print(f"Working on {md_file_path}")
 
                 with open(md_file_path, "r", encoding="utf-8") as md_file:
                     md_content = md_file.read()
