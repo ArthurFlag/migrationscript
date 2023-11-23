@@ -65,6 +65,10 @@ Now take care of these topics manually:
 - https://docs.aiven.io/docs/products/clickhouse/howto/data-service-integration
 - https://docs.aiven.io/docs/products/mysql/concepts/max-number-of-connections
 - /Users/arthurflageul/repos/aiven-docs/docs/products/postgresql/reference/list-of-extensions.md
+- docs/products/kafka/howto/enable-oidc.rst 
+- products/kafka/reference/advanced-params
+- kafka/prevent-full-disks
+- build the docs and search for ---+ in the build folder to fix broken tables.
 """
     print(out)
     
@@ -95,6 +99,9 @@ def update_title(md_content):
 
         if ":" in title_without_backticks:
             title_without_backticks = f'"{title_without_backticks}"'
+            
+        
+        title_without_backticks = title_without_backticks.replace("®\\*","®*")
 
         yaml_front_matter = f"---\ntitle: {title_without_backticks}\n---\n"
 
@@ -245,9 +252,11 @@ def process_custom_markup(md_content):
     md_content = md_content.replace("<hacks@Aiven.io>","[hacks@aiven.io](mailto:hacks@aiven.io)")
     md_content = md_content.replace("<sales@Aiven.io>","[sales@aiven.io](mailto:sales@aiven.io)")
     md_content = md_content.replace("<support@Aiven.io>","[support@aiven.io](mailto:support@aiven.io)")
+    md_content = md_content.replace("{width=\"400px\"}","")
+    md_content = md_content.replace("{width=\"100.0%\"}","")
     md_content = re.sub(r"\n:::\s?tableofcontents\n:::\n",r"",md_content,flags=re.MULTILINE)
     md_content = re.sub(r"<(https://.*)>",r"[\1](\1)",md_content,flags=re.MULTILINE)
-      
+    
     return md_content
 
 def delete_complex_files(destination_repo):
