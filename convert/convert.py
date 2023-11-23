@@ -254,8 +254,10 @@ def process_custom_markup(md_content):
     md_content = md_content.replace("<support@Aiven.io>","[support@aiven.io](mailto:support@aiven.io)")
     md_content = md_content.replace("{width=\"400px\"}","")
     md_content = md_content.replace("{width=\"100.0%\"}","")
+    md_content = md_content.replace("::: {#Terminology",":::Terminology")
     md_content = re.sub(r"\n:::\s?tableofcontents\n:::\n",r"",md_content,flags=re.MULTILINE)
     md_content = re.sub(r"<(https://.*)>",r"[\1](\1)",md_content,flags=re.MULTILINE)
+    
     
     return md_content
 
@@ -296,19 +298,13 @@ def extract_titles_with_anchors(md_content):
 
     return titles_and_anchors
 
-
-
-      
-
 # TODO
 # find `delete`{.interpreted-text role="bdg-secondary"}
 # `console-authentication`{.interpreted-text role="ref"} (same page link)
 # `avn_service_plan`{.interpreted-text role="ref"} 
-# ::: {.literalinclude language="properties"}
 # variables
 # check docs/products/kafka/howto/prevent-full-disks.md
-# # `api/examples`{.interpreted-text role="doc"}
-# ::: {#Terminology MM2ClusterAliasducts/opensearch/howto/connect-with-pytho}
+# `api/examples`{.interpreted-text role="doc"}
 # 
 
 
