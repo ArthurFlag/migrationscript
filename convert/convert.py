@@ -127,9 +127,9 @@ def fix_admonitions(md_content):
     )
     md_content =re.sub(
         r"::: (\w+)", # ::: tip
-        ":::\1",
+        r":::\1",
         md_content,
-        flags=re.MULTILINE | re.DOTALL,
+        flags=re.MULTILINE
     )
     return md_content
 
