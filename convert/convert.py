@@ -192,26 +192,30 @@ def fix_full_links(md_content):
 def fix_literal_includes(md_content):
   language_pattern = re.compile(r'::: {\.literalinclude language=\"(.*?)\"}\n( *\/.*$)\n *:::', re.MULTILINE)
   path_pattern = re.compile(r'::: {\.literalinclude language=\".*?\"}\n( *\/.*$)\n *:::', re.MULTILINE)
-  component_dict = {}
+  import_dict = {}
   component_counter = 1  # Initialize component_counter
-  
+  final = md_content
   def replace_line(match):
       nonlocal component_counter  # Use nonlocal to reference the outer component_counter
       language = match.group(1)
       path = next(path_generator)
       component_name = f"MyComponentSource{component_counter}"
-      component_dict[component_name] = path
+      import_dict[component_name] = path
       replacement = f"<CodeBlock language='{language}'>{{{component_name}}}</CodeBlock>"
       component_counter += 1
       return replacement
 
-  # Find all matches for language and path
-  language_matches = language_pattern.finditer(md_content)
   path_matches = path_pattern.finditer(md_content)
-
   path_generator = (match.group(1) for match in path_matches)
   output_text = language_pattern.sub(replace_line, md_content)
-  return output_text
+  imports = ["import CodeBlock from '@theme/CodeBlock';"] 
+  if import_dict:
+    for k,v in import_dict.items():
+      imports.append(f'import {k} from \'!!raw-loader!{v.strip()}\';')  
+      importsstr = "\n".join(imports) + "\n"
+    final = re.sub(r"(---\ntitle.*\n---\n)", rf"\1\n{importsstr}", output_text)
+  
+  return final
     
 def cleanup_md(md_folder_path, destination_repo_path):
     for root, dirs, files in os.walk(md_folder_path):

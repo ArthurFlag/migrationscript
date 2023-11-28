@@ -2,6 +2,7 @@
 title: My title
 ---
 
+import CodeBlock from '@theme/CodeBlock';
 import MyComponentSource1 from '!!raw-loader!/first/path';
 import MyComponentSource2 from '!!raw-loader!/second/path';
 
