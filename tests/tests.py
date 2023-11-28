@@ -175,9 +175,12 @@ class TestConvert(unittest.TestCase):
         expected_output_file_path = os.path.join(
             os.path.dirname(__file__), "md_files", "literal_includes_expected.md"
         )
+        
         with open(input_file_path, "r", encoding="utf-8") as input_file:
             input_content = input_file.read()
+        
         fixed_content = fix_literal_includes(input_content)
+        
         with open(
             expected_output_file_path, "r", encoding="utf-8"
         ) as expected_output_file:

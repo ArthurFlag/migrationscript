@@ -190,8 +190,28 @@ def fix_full_links(md_content):
     return re.sub(pattern, r"[\1](\2)", md_content)
 
 def fix_literal_includes(md_content):
-    pattern = r"::: {\.literalinclude language=\"(.*)\"}"
-    return re.sub(pattern,r"::: literalinclude \1", md_content)
+  language_pattern = re.compile(r'::: {\.literalinclude language=\"(.*?)\"}\n( *\/.*$)\n *:::', re.MULTILINE)
+  path_pattern = re.compile(r'::: {\.literalinclude language=\".*?\"}\n( *\/.*$)\n *:::', re.MULTILINE)
+  component_dict = {}
+  component_counter = 1  # Initialize component_counter
+  
+  def replace_line(match):
+      nonlocal component_counter  # Use nonlocal to reference the outer component_counter
+      language = match.group(1)
+      path = next(path_generator)
+      component_name = f"MyComponentSource{component_counter}"
+      component_dict[component_name] = path
+      replacement = f"<CodeBlock language='{language}'>{{{component_name}}}</CodeBlock>"
+      component_counter += 1
+      return replacement
+
+  # Find all matches for language and path
+  language_matches = language_pattern.finditer(md_content)
+  path_matches = path_pattern.finditer(md_content)
+
+  path_generator = (match.group(1) for match in path_matches)
+  output_text = language_pattern.sub(replace_line, md_content)
+  return output_text
     
 def cleanup_md(md_folder_path, destination_repo_path):
     for root, dirs, files in os.walk(md_folder_path):
@@ -305,7 +325,7 @@ def extract_titles_with_anchors(md_content):
 # variables
 # check docs/products/kafka/howto/prevent-full-disks.md
 # `api/examples`{.interpreted-text role="doc"}
-# 
+# ``` {.bash caption="Expected output"}
 
 
 if __name__ == "__main__":
