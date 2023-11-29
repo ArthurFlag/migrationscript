@@ -16,11 +16,14 @@ def main(source_path, destination_repo, image_source_path, src_repo_path):
     include_destination_path = os.path.join(destination_repo, "static/includes")
     image_destination_path = os.path.join(destination_repo, "static/images")
     destination_docs_path = os.path.join(destination_repo, "docs")
+    code_source_path = os.path.join(source_path,"code")
+    code_destination_path = os.path.join(destination_repo, "static/code")
     
     print("🧹 Deleting output...")
     delete_folder(destination_docs_path)
     delete_folder(include_destination_path) 
     copy_folder_contents(image_source_path, image_destination_path)
+    copy_folder_contents(code_source_path, code_destination_path)
     
     print(f"⚒️ Converting {include_source_path}...")
     for root, dirs, files in os.walk(include_source_path):
@@ -330,7 +333,6 @@ def extract_titles_with_anchors(md_content):
 # check docs/products/kafka/howto/prevent-full-disks.md
 # `api/examples`{.interpreted-text role="doc"}
 # ``` {.bash caption="Expected output"}
-
 
 if __name__ == "__main__":
     main()
