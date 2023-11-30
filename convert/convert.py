@@ -6,43 +6,46 @@ import click
 
 
 @click.command()
-@click.option("--source_path", envvar="SRC_DOCS_PATH")
+@click.option("--docs_path", envvar="SRC_DOCS_PATH")
 @click.option("--destination_repo", envvar="DEST_REPO_PATH")
 @click.option("--image_source_path", envvar="SRC_IMG_PATH")
 @click.option("--src_repo_path", envvar="SRC_REPO_PATH")
-def main(source_path, destination_repo, image_source_path, src_repo_path):
+def main(docs_path, destination_repo, image_source_path, src_repo_path):
     log_file_path = "log.txt"
     include_source_path = os.path.join(src_repo_path, "includes")
     include_destination_path = os.path.join(destination_repo, "static/includes")
     image_destination_path = os.path.join(destination_repo, "static/images")
     destination_docs_path = os.path.join(destination_repo, "docs")
-    code_source_path = os.path.join(source_path, "../code")
+    code_source_path = os.path.join(docs_path, "../code")
     code_destination_path = os.path.join(destination_repo, "static/code")
     source_path_temp = os.path.join(os.path.dirname(__file__), "../temp")
+    include_source_path_temp = os.path.join(os.path.dirname(__file__), "../includes_temp")
 
-    print("🧹 Deleting output...")
+    print("🧹  Deleting output...")
     delete_folder(destination_docs_path)
     delete_folder(source_path_temp)
     delete_folder(include_destination_path)
+    delete_folder(include_source_path_temp)
     copy_folder_contents(image_source_path, image_destination_path)
     copy_folder_contents(code_source_path, code_destination_path)
-    copy_folder_contents(source_path, source_path_temp)
+    copy_folder_contents(include_source_path, include_source_path_temp)
+    copy_folder_contents(docs_path, source_path_temp)
 
-    fix_include_path(source_path)
+    fix_include_paths(source_path_temp, include_source_path_temp)
     convert_includes_to_md(log_file_path, include_source_path, include_destination_path)
     convert_docs_to_md(
         source_path_temp, log_file_path, destination_docs_path
     )
     cleanup_md(destination_docs_path, destination_repo)
     # delete_complex_files(destination_docs_path)
-    print("✅ Conversion done.")
+    print("✅  Conversion done.")
     nextsteps()
 
 
 def convert_docs_to_md(
     source_path, log_file_path, destination_docs_path
 ):
-    print(f"⚒️ Converting {source_path}...")
+    print(f"⚒️  Converting {source_path}...")
     for root, dirs, files in os.walk(source_path):
         for file in files:
             if file.endswith(".rst"):
@@ -65,7 +68,7 @@ def convert_includes_to_md(
     """
     Converts the include to md
     """
-    print(f"⚒️ Convert includes in {include_source_path}...")
+    print(f"⚒️  Convert includes in {include_source_path}...")
     for root, dirs, files in os.walk(include_source_path):
         for file in files:
             if file.endswith(".rst"):
@@ -82,23 +85,25 @@ def convert_includes_to_md(
                 )
 
 
-def fix_include_path(source_path):
-    print(f"⚒️ Fixing include paths in {source_path}...")
+def fix_include_paths(source_path,include_source_path):
+    print(f"⚒️  Fixing include paths in {source_path}...")
     for root, dirs, files in os.walk(source_path):
         for file in files:
             if file.endswith(".rst"):
                 rst_file_path = os.path.join(root, file)
-                # print(f"  Fixing {rst_file_path}...")
                 with open(rst_file_path, "r", encoding="utf-8") as rst_file:
                     rst_content = rst_file.read()
 
-                rst_content = update_include_link_rst(rst_content)
+                rst_content = update_include_link_rst(rst_content,include_source_path)
 
                 with open(rst_file_path, "w", encoding="utf-8") as rst_file:
                     rst_file.write(rst_content)
 
-def update_include_link_rst(rst_content):
-  return rst_content
+def update_include_link_rst(rst_content, include_source_path):
+    pattern = r"\.\. include:: /includes/(.*?\.rst)"
+    updated_content = re.sub(pattern, f".. include:: {include_source_path}/\\1", rst_content)
+
+    return updated_content
 
 def nextsteps():
     out = """
@@ -216,7 +221,7 @@ def fix_no_name_links(md_content, repo_path):
         try:
             title = extract_title(resolved_path)
         except LookupError:
-            print(f"⚠️ Couldn't find title in {path}. Using None.")
+            print(f"⚠️  Couldn't find title in {path}. Using None.")
             title = "None"
         newlink = f"[{title}]({path})"
         md_content = re.sub(pattern_link_no_title, newlink, md_content)
@@ -311,7 +316,6 @@ def cleanup_md(md_folder_path, destination_repo_path):
                     md_file.write(md_content)
 
     # take a second round for link and title resolution
-    print("Second pass...")
     for root, dirs, files in os.walk(md_folder_path):
         for file in files:
             if file.endswith(".md"):

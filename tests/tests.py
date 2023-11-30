@@ -228,5 +228,25 @@ class TestConvert(unittest.TestCase):
 
         self.assertEqual(fixed_content, expected_output_content)
 
+    def test_fix_include_path(self):
+        input_file_path = os.path.join(
+            os.path.dirname(__file__), "rst_files", "include.rst"
+        )
+        expected_output_file_path = os.path.join(
+            os.path.dirname(__file__), "rst_files", "include_expected.rst"
+        )
+
+        with open(input_file_path, "r", encoding="utf-8") as input_file:
+            input_content = input_file.read()
+
+        fixed_content = update_include_link_rst(input_content,"../includes")
+
+        with open(
+            expected_output_file_path, "r", encoding="utf-8"
+        ) as expected_output_file:
+            expected_output_content = expected_output_file.read()
+
+        self.assertEqual(fixed_content, expected_output_content)
+
 if __name__ == "__main__":
     unittest.main()
