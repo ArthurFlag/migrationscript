@@ -241,6 +241,12 @@ def process_seealso_blocks(md_content):
     return updated_content
 
 
+def process_topic_blocks(md_content):
+    pattern = r':::topic\n\*\*(.*?)\*\*\n'
+    updated_content = re.sub(pattern, r":::note \1", md_content)
+
+    return updated_content
+
 def cleanup_md(md_folder_path, destination_repo_path):
     for root, dirs, files in os.walk(md_folder_path):
         for file in files:
@@ -369,8 +375,7 @@ def extract_titles_with_anchors(md_content):
 # `api/examples`{.interpreted-text role="doc"}
 # ``` {.bash caption="Expected output"}
 # convert variables
-# convert topic
-# convert see also
+# before pandoc, fix include paths
 
 if __name__ == "__main__":
     main()
