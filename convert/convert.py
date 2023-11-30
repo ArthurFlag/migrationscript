@@ -112,9 +112,8 @@ Now take care of these topics manually:
 - https://docs.aiven.io/docs/products/mysql/concepts/max-number-of-connections
 - /Users/arthurflageul/repos/aiven-docs/docs/products/postgresql/reference/list-of-extensions.md
 - docs/products/kafka/howto/enable-oidc.rst
-- products/kafka/reference/advanced-params
-- kafka/prevent-full-disks
 - build the docs and search for ---+ in the build folder to fix broken tables.
+- recreate includes
 """
     print(out)
 
@@ -307,7 +306,9 @@ def cleanup_md(md_folder_path, destination_repo_path):
                     md_content = fix_standalone_links(md_content)
                     md_content = fix_literal_includes(md_content)
                     md_content = process_seealso_blocks(md_content)
+                    md_content = process_topic_blocks(md_content)
                     md_content = process_custom_markup(md_content)
+                    md_content = comment_out_mermaid(md_content)
                     # md_content_no_grids = process_grids(md_content_titles_adm_docref_fixed)
 
                 # write the changes
@@ -408,6 +409,11 @@ def extract_titles_with_anchors(md_content):
 
     return titles_and_anchors
 
+def comment_out_mermaid(md_content):
+    pattern = r"(:::mermaid.*?:::)"
+    updated_content = re.sub(pattern, r"<!--\n\1\n-->", md_content, flags=re.DOTALL)
+
+    return updated_content
 
 # TODO
 # find `delete`{.interpreted-text role="bdg-secondary"}

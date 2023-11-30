@@ -248,5 +248,25 @@ class TestConvert(unittest.TestCase):
 
         self.assertEqual(fixed_content, expected_output_content)
 
+    def test_comment_out_mermaid(self):
+        input_file_path = os.path.join(
+            os.path.dirname(__file__), "md_files", "mermaid.md"
+        )
+        expected_output_file_path = os.path.join(
+            os.path.dirname(__file__),  "md_files", "mermaid_expected.md"
+        )
+
+        with open(input_file_path, "r", encoding="utf-8") as input_file:
+            input_content = input_file.read()
+
+        fixed_content = comment_out_mermaid(input_content)
+
+        with open(
+            expected_output_file_path, "r", encoding="utf-8"
+        ) as expected_output_file:
+            expected_output_content = expected_output_file.read()
+
+        self.assertEqual(fixed_content, expected_output_content)
+
 if __name__ == "__main__":
     unittest.main()
