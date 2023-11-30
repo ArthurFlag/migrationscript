@@ -16,15 +16,15 @@ def main(source_path, destination_repo, image_source_path, src_repo_path):
     include_destination_path = os.path.join(destination_repo, "static/includes")
     image_destination_path = os.path.join(destination_repo, "static/images")
     destination_docs_path = os.path.join(destination_repo, "docs")
-    code_source_path = os.path.join(source_path,"code")
+    code_source_path = os.path.join(source_path, "code")
     code_destination_path = os.path.join(destination_repo, "static/code")
-    
+
     print("🧹 Deleting output...")
     delete_folder(destination_docs_path)
-    delete_folder(include_destination_path) 
+    delete_folder(include_destination_path)
     copy_folder_contents(image_source_path, image_destination_path)
     copy_folder_contents(code_source_path, code_destination_path)
-    
+
     print(f"⚒️ Converting {include_source_path}...")
     for root, dirs, files in os.walk(include_source_path):
         for file in files:
@@ -40,7 +40,7 @@ def main(source_path, destination_repo, image_source_path, src_repo_path):
                     md_file_path,
                     os.path.join(include_destination_path, log_file_path),
                 )
-                
+
     print(f"⚒️ Converting {source_path}...")
     for root, dirs, files in os.walk(source_path):
         for file in files:
@@ -62,20 +62,21 @@ def main(source_path, destination_repo, image_source_path, src_repo_path):
     print("✅ Conversion done.")
     nextsteps()
 
+
 def nextsteps():
-    out ="""
+    out = """
 Now take care of these topics manually:
 - https://docs.aiven.io/docs/products/clickhouse/howto/data-service-integration
 - https://docs.aiven.io/docs/products/mysql/concepts/max-number-of-connections
 - /Users/arthurflageul/repos/aiven-docs/docs/products/postgresql/reference/list-of-extensions.md
-- docs/products/kafka/howto/enable-oidc.rst 
+- docs/products/kafka/howto/enable-oidc.rst
 - products/kafka/reference/advanced-params
 - kafka/prevent-full-disks
 - build the docs and search for ---+ in the build folder to fix broken tables.
 """
     print(out)
-    
-    
+
+
 def delete_file(file_path):
     try:
         os.remove(file_path)
@@ -102,9 +103,8 @@ def update_title(md_content):
 
         if ":" in title_without_backticks:
             title_without_backticks = f'"{title_without_backticks}"'
-            
-        
-        title_without_backticks = title_without_backticks.replace("®\\*","®*")
+
+        title_without_backticks = title_without_backticks.replace("®\\*", "®*")
 
         yaml_front_matter = f"---\ntitle: {title_without_backticks}\n---\n"
 
@@ -128,13 +128,11 @@ def fix_admonitions(md_content):
         md_content,
         flags=re.MULTILINE | re.DOTALL,
     )
-    md_content =re.sub(
-        r"::: (\w+)", # ::: tip
-        r":::\1",
-        md_content,
-        flags=re.MULTILINE
+    md_content = re.sub(
+        r"::: (\w+)", r":::\1", md_content, flags=re.MULTILINE  # ::: tip
     )
     return md_content
+
 
 def fix_standalone_links(md_content):
     # <somelink>
@@ -149,7 +147,7 @@ def fix_standalone_links(md_content):
 def extract_title(path):
     # Open the file located at the path
     if not os.path.splitext(path)[1]:
-      path += ".md"
+        path += ".md"
 
     # print(f"extracting title from {path}")
     try:
@@ -192,34 +190,57 @@ def fix_full_links(md_content):
     pattern = r"`(.*?)\s*<(.*?)>`{\.interpreted-text\s+role=\"...\"}"
     return re.sub(pattern, r"[\1](\2)", md_content)
 
-def fix_literal_includes(md_content):
-  language_pattern = re.compile(r'::: {\.literalinclude language=\"(.*?)\"}\n( *\/.*$)\n *:::', re.MULTILINE)
-  path_pattern = re.compile(r'::: {\.literalinclude language=\".*?\"}\n( *\/.*$)\n *:::', re.MULTILINE)
-  import_dict = {}
-  component_counter = 1  # Initialize component_counter
-  final = md_content
-  def replace_line(match):
-      nonlocal component_counter  # Use nonlocal to reference the outer component_counter
-      language = match.group(1)
-      path = next(path_generator)
-      component_name = f"MyComponentSource{component_counter}"
-      import_dict[component_name] = path
-      replacement = f"<CodeBlock language='{language}'>{{{component_name}}}</CodeBlock>"
-      component_counter += 1
-      return replacement
 
-  path_matches = path_pattern.finditer(md_content)
-  path_generator = (match.group(1) for match in path_matches)
-  output_text = language_pattern.sub(replace_line, md_content)
-  imports = ["import CodeBlock from '@theme/CodeBlock';"] 
-  if import_dict:
-    for k,v in import_dict.items():
-      imports.append(f'import {k} from \'!!raw-loader!{v.strip()}\';')  
-      importsstr = "\n".join(imports) + "\n"
-    final = re.sub(r"(---\ntitle.*\n---\n)", rf"\1\n{importsstr}", output_text)
-  
-  return final
-    
+def fix_literal_includes(md_content):
+    language_pattern = re.compile(
+        r"::: {\.literalinclude language=\"(.*?)\"}\n( *\/.*$)\n *:::", re.MULTILINE
+    )
+    path_pattern = re.compile(
+        r"::: {\.literalinclude language=\".*?\"}\n( *\/.*$)\n *:::", re.MULTILINE
+    )
+    import_dict = {}
+    component_counter = 1  # Initialize component_counter
+    final = md_content
+
+    def replace_line(match):
+        nonlocal component_counter  # Use nonlocal to reference the outer component_counter
+        language = match.group(1)
+        path = next(path_generator)
+        component_name = f"MyComponentSource{component_counter}"
+        import_dict[component_name] = path
+        replacement = (
+            f"<CodeBlock language='{language}'>{{{component_name}}}</CodeBlock>"
+        )
+        component_counter += 1
+        return replacement
+
+    path_matches = path_pattern.finditer(md_content)
+    path_generator = (match.group(1) for match in path_matches)
+    output_text = language_pattern.sub(replace_line, md_content)
+    imports = ["import CodeBlock from '@theme/CodeBlock';"]
+    if import_dict:
+        for k, v in import_dict.items():
+            imports.append(f"import {k} from '!!raw-loader!{v.strip()}';")
+            importsstr = "\n".join(imports) + "\n"
+        final = re.sub(r"(---\ntitle.*\n---\n)", rf"\1\n{importsstr}", output_text)
+
+    return final
+
+
+def process_seealso_blocks(md_content):
+    # Define the regular expression pattern to match ::seealso blocks
+    pattern = r":::seealso\s*([\s\S]*?):::"
+
+    def replace_block(match):
+        # Replace the ::seealso block with :::note See also
+        return ":::note See also\n" + match.group(1).strip() + "\n:::"
+
+    # Use re.sub() to replace all occurrences of the pattern in the input content
+    updated_content = re.sub(pattern, replace_block, md_content)
+
+    return updated_content
+
+
 def cleanup_md(md_folder_path, destination_repo_path):
     for root, dirs, files in os.walk(md_folder_path):
         for file in files:
@@ -235,6 +256,7 @@ def cleanup_md(md_folder_path, destination_repo_path):
                     md_content = fix_full_links(md_content)
                     md_content = fix_standalone_links(md_content)
                     md_content = fix_literal_includes(md_content)
+                    md_content = process_seealso_blocks(md_content)
                     md_content = process_custom_markup(md_content)
                     # md_content_no_grids = process_grids(md_content_titles_adm_docref_fixed)
 
@@ -258,6 +280,7 @@ def cleanup_md(md_folder_path, destination_repo_path):
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
                     md_file.write(md_content)
 
+
 def process_grids(md_content):
     # deletes grid instructions from the content
     card_declaration = r"`^::: \{\.grid-item-card.*?\n(.*?)^:::$\n`"
@@ -270,23 +293,32 @@ def process_grids(md_content):
     )
     return content_final
 
+
 def process_custom_markup(md_content):
     # prevents build error on custom markup. Should be solved properly later.
     # ex  "[destination]{.title-ref}"" or ""::: {.grid...}"
 
-    md_content = re.sub(r"^::: {\.(.*?) .*",r"::: \1",md_content, flags=re.MULTILINE)
-    md_content = re.sub(r"\[(.*)\]\{\..*?\}",r"`\1`",md_content, flags=re.MULTILINE)
-    md_content = md_content.replace("<hacks@Aiven.io>","[hacks@aiven.io](mailto:hacks@aiven.io)")
-    md_content = md_content.replace("<sales@Aiven.io>","[sales@aiven.io](mailto:sales@aiven.io)")
-    md_content = md_content.replace("<support@Aiven.io>","[support@aiven.io](mailto:support@aiven.io)")
-    md_content = md_content.replace("{width=\"400px\"}","")
-    md_content = md_content.replace("{width=\"100.0%\"}","")
-    md_content = md_content.replace("::: {#Terminology",":::Terminology")
-    md_content = re.sub(r"\n:::\s?tableofcontents\n:::\n",r"",md_content,flags=re.MULTILINE)
-    md_content = re.sub(r"<(https://.*)>",r"[\1](\1)",md_content,flags=re.MULTILINE)
-    
-    
+    md_content = re.sub(r"^::: {\.(.*?) .*", r"::: \1", md_content, flags=re.MULTILINE)
+    md_content = re.sub(r"\[(.*)\]\{\..*?\}", r"`\1`", md_content, flags=re.MULTILINE)
+    md_content = md_content.replace(
+        "<hacks@Aiven.io>", "[hacks@aiven.io](mailto:hacks@aiven.io)"
+    )
+    md_content = md_content.replace(
+        "<sales@Aiven.io>", "[sales@aiven.io](mailto:sales@aiven.io)"
+    )
+    md_content = md_content.replace(
+        "<support@Aiven.io>", "[support@aiven.io](mailto:support@aiven.io)"
+    )
+    md_content = md_content.replace('{width="400px"}', "")
+    md_content = md_content.replace('{width="100.0%"}', "")
+    md_content = md_content.replace("::: {#Terminology", ":::Terminology")
+    md_content = re.sub(
+        r"\n:::\s?tableofcontents\n:::\n", r"", md_content, flags=re.MULTILINE
+    )
+    md_content = re.sub(r"<(https://.*)>", r"[\1](\1)", md_content, flags=re.MULTILINE)
+
     return md_content
+
 
 def delete_complex_files(destination_repo):
     # delete files that we need to handle better later
@@ -303,36 +335,42 @@ def copy_folder_contents(source_path, destination_path):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+
 def fix_anchor_links(md_content):
     # Define a regular expression pattern to find occurrences of {#...}
-    pattern = r'`([^<>]+)`{\.interpreted-text role=\"ref\"}'
+    pattern = r"`([^<>]+)`{\.interpreted-text role=\"ref\"}"
     title_anchor_dict = extract_titles_with_anchors(md_content)
+
     # Define the substitution function
     def replace_match(match):
         title = title_anchor_dict.get(match.group(1), match.group(1))
-        return f'[{title}](#{match.group(1)})'
+        return f"[{title}](#{match.group(1)})"
 
     # Use re.sub to replace the matches with the dictionary values
     updated_content = re.sub(pattern, replace_match, md_content)
 
     return updated_content
 
+
 def extract_titles_with_anchors(md_content):
-    
-    title_pattern = r'#+ (.+?) \{#(.+?)\}'
+    title_pattern = r"#+ (.+?) \{#(.+?)\}"
     title_matches = re.findall(title_pattern, md_content)
     titles_and_anchors = {anchor: title for title, anchor in title_matches}
 
     return titles_and_anchors
 
+
 # TODO
 # find `delete`{.interpreted-text role="bdg-secondary"}
 # `console-authentication`{.interpreted-text role="ref"} (same page link)
-# `avn_service_plan`{.interpreted-text role="ref"} 
-# variables
+# `avn_service_plan`{.interpreted-text role="ref"}
+#
 # check docs/products/kafka/howto/prevent-full-disks.md
 # `api/examples`{.interpreted-text role="doc"}
 # ``` {.bash caption="Expected output"}
+# convert variables
+# convert topic
+# convert see also
 
 if __name__ == "__main__":
     main()
