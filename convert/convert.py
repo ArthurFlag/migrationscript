@@ -16,31 +16,32 @@ def main(source_path, destination_repo, image_source_path, src_repo_path):
     include_destination_path = os.path.join(destination_repo, "static/includes")
     image_destination_path = os.path.join(destination_repo, "static/images")
     destination_docs_path = os.path.join(destination_repo, "docs")
-    code_source_path = os.path.join(source_path, "code")
+    code_source_path = os.path.join(source_path, "../code")
     code_destination_path = os.path.join(destination_repo, "static/code")
+    source_path_temp = os.path.join(os.path.dirname(__file__), "../temp")
 
     print("🧹 Deleting output...")
     delete_folder(destination_docs_path)
+    delete_folder(source_path_temp)
     delete_folder(include_destination_path)
     copy_folder_contents(image_source_path, image_destination_path)
     copy_folder_contents(code_source_path, code_destination_path)
+    copy_folder_contents(source_path, source_path_temp)
 
-    print(f"⚒️ Converting {include_source_path}...")
-    for root, dirs, files in os.walk(include_source_path):
-        for file in files:
-            if file.endswith(".rst"):
-                rst_file_path = os.path.join(root, file)
-                relative_path = os.path.relpath(rst_file_path, include_source_path)
-                md_file_path = os.path.join(
-                    include_destination_path, relative_path[:-4] + ".md"
-                )
-                os.makedirs(os.path.dirname(md_file_path), exist_ok=True)
-                convert_rst_to_md(
-                    rst_file_path,
-                    md_file_path,
-                    os.path.join(include_destination_path, log_file_path),
-                )
+    fix_include_path(source_path)
+    convert_includes_to_md(log_file_path, include_source_path, include_destination_path)
+    convert_docs_to_md(
+        source_path_temp, log_file_path, destination_docs_path
+    )
+    cleanup_md(destination_docs_path, destination_repo)
+    # delete_complex_files(destination_docs_path)
+    print("✅ Conversion done.")
+    nextsteps()
 
+
+def convert_docs_to_md(
+    source_path, log_file_path, destination_docs_path
+):
     print(f"⚒️ Converting {source_path}...")
     for root, dirs, files in os.walk(source_path):
         for file in files:
@@ -56,12 +57,48 @@ def main(source_path, destination_repo, image_source_path, src_repo_path):
                     md_file_path,
                     os.path.join(destination_docs_path, log_file_path),
                 )
-    print("\n🧹 Cleaning up MD files...")
-    cleanup_md(destination_docs_path, destination_repo)
-    # delete_complex_files(destination_docs_path)
-    print("✅ Conversion done.")
-    nextsteps()
 
+
+def convert_includes_to_md(
+    log_file_path, include_source_path, include_destination_path
+):
+    """
+    Converts the include to md
+    """
+    print(f"⚒️ Convert includes in {include_source_path}...")
+    for root, dirs, files in os.walk(include_source_path):
+        for file in files:
+            if file.endswith(".rst"):
+                rst_file_path = os.path.join(root, file)
+                relative_path = os.path.relpath(rst_file_path, include_source_path)
+                md_file_path = os.path.join(
+                    include_destination_path, relative_path[:-4] + ".md"
+                )
+                os.makedirs(os.path.dirname(md_file_path), exist_ok=True)
+                convert_rst_to_md(
+                    rst_file_path,
+                    md_file_path,
+                    os.path.join(include_destination_path, log_file_path),
+                )
+
+
+def fix_include_path(source_path):
+    print(f"⚒️ Fixing include paths in {source_path}...")
+    for root, dirs, files in os.walk(source_path):
+        for file in files:
+            if file.endswith(".rst"):
+                rst_file_path = os.path.join(root, file)
+                # print(f"  Fixing {rst_file_path}...")
+                with open(rst_file_path, "r", encoding="utf-8") as rst_file:
+                    rst_content = rst_file.read()
+
+                rst_content = update_include_link_rst(rst_content)
+
+                with open(rst_file_path, "w", encoding="utf-8") as rst_file:
+                    rst_file.write(rst_content)
+
+def update_include_link_rst(rst_content):
+  return rst_content
 
 def nextsteps():
     out = """
@@ -89,9 +126,9 @@ def delete_folder(path):
     try:
         if os.path.exists(path):
             shutil.rmtree(path)
-            print(f"Folder at {path} successfully deleted.")
+            print(f"  Folder at {path} successfully deleted.")
         else:
-            print(f"Folder at {path} does not exist.")
+            print(f"  Folder at {path} does not exist.")
     except Exception as e:
         print(f"An error occurred: {e}")
 
@@ -242,12 +279,14 @@ def process_seealso_blocks(md_content):
 
 
 def process_topic_blocks(md_content):
-    pattern = r':::topic\n\*\*(.*?)\*\*\n'
+    pattern = r":::topic\n\*\*(.*?)\*\*\n"
     updated_content = re.sub(pattern, r":::note \1", md_content)
 
     return updated_content
 
+
 def cleanup_md(md_folder_path, destination_repo_path):
+    print("\n🧹 Cleaning up MD files...")
     for root, dirs, files in os.walk(md_folder_path):
         for file in files:
             if file.endswith(".md"):
