@@ -146,6 +146,7 @@ def update_title(md_content):
             title_without_backticks = f'"{title_without_backticks}"'
 
         title_without_backticks = title_without_backticks.replace("®\\*", "®*")
+        title_without_backticks = title_without_backticks.replace("\\'s", "'s")
 
         yaml_front_matter = f"---\ntitle: {title_without_backticks}\n---\n"
 
