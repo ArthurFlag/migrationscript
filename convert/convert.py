@@ -113,7 +113,7 @@ Now take care of these topics manually:
 - /Users/arthurflageul/repos/aiven-docs/docs/products/postgresql/reference/list-of-extensions.md
 - docs/products/kafka/howto/enable-oidc.rst
 - build the docs and search for ---+ in the build folder to fix broken tables.
-- recreate includes
+- recreate includes - rerun pandoc without the fix_include_path if needed, to see the warnings.
 """
     print(out)
 
@@ -361,7 +361,11 @@ def process_custom_markup(md_content):
         "<support@Aiven.io>", "[support@aiven.io](mailto:support@aiven.io)"
     )
     md_content = md_content.replace('{width="400px"}', "")
+    md_content = md_content.replace('{width="500px"}', "")
     md_content = md_content.replace('{width="100.0%"}', "")
+    md_content = md_content.replace('{height="342px"}', "")
+    md_content = md_content.replace('{height="249px"}', "")
+
     md_content = md_content.replace("::: {#Terminology", ":::Terminology")
     md_content = re.sub(
         r"\n:::\s?tableofcontents\n:::\n", r"", md_content, flags=re.MULTILINE
@@ -425,7 +429,6 @@ def comment_out_mermaid(md_content):
 # `api/examples`{.interpreted-text role="doc"}
 # ``` {.bash caption="Expected output"}
 # convert variables
-# before pandoc, fix include paths
 
 if __name__ == "__main__":
     main()
