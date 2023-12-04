@@ -365,8 +365,22 @@ def process_custom_markup(md_content):
     md_content = md_content.replace('{width="100.0%"}', "")
     md_content = md_content.replace('{height="342px"}', "")
     md_content = md_content.replace('{height="249px"}', "")
-
+    md_content = md_content.replace('](avn_service_integration_endpoint_create)', "](/docs/tools/cli/service/integration#avn_service_integration_endpoint_create)")
+    md_content = md_content.replace('](avn_service_integration_create)', "](/docs/tools/cli/service/integration#avn_service_integration_create)")
+    md_content = md_content.replace('](avn_service_integration_endpoint_list)', "](/docs/tools/cli/service/integration#avn_service_integration_endpoint_list)")
+    md_content = md_content.replace('](sales@aiven.io) ', "](mailto:sales@aiven.io)")
+    md_content = md_content.replace("](avn-service-logs)","](/docs/tools/cli/service#avn-service-logs)")
     md_content = md_content.replace("::: {#Terminology", ":::Terminology")
+    md_content = md_content.replace("](avn-create-update-project)","](/docs/tools/cli/service#avn-create-update-project)")
+
+    md_content = md_content.replace("](avn-delete-project)","](/docs/tools/cli/service#avn-delete-project)")
+    md_content = md_content.replace("](avn-cli-service-update)","](/docs/tools/cli/service#avn-cli-service-update)")
+    md_content = md_content.replace("](avn-service-logs)","](/docs/tools/cli/service#avn-service-logs)")
+    md_content = md_content.replace("](avn-service-metrics)","](/docs/tools/cli/service#avn-service-metrics)")
+    md_content = md_content.replace("](avn-cli-service-terminate)","](/docs/tools/cli/service#avn-cli-service-terminate)")
+    md_content = md_content.replace("](create-org-api)","](#create-org-api)")
+    md_content = re.sub(r"{\.interpreted-text\s*?role=\"bdg-secondary\"}","",md_content)
+
     md_content = re.sub(
         r"\n:::\s?tableofcontents\n:::\n", r"", md_content, flags=re.MULTILINE
     )

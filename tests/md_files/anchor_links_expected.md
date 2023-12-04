@@ -50,3 +50,34 @@ Don't do anything `console-authentication <test>`{.interpreted-text role="ref"} 
 ## See also
 
 -   Enable OAuth2/OIDC support for Apache Kafka® REST proxy
+
+### Assign standalone projects to an organization or unit
+
+If you don\'t have an organization, you need to
+[create an organization](#create-org-api)
+first and then assign your projects to it.
+
+To assign a standalone project to an organization or unit use the
+following call. Replace `ACCOUNT_ID` with the ID of the organization or
+unit and `PROJECT_NAME` with the name of the project to assign.
+
+```
+curl -sXPUT \
+ https://api.aiven.io/v1/project/PROJECT_NAME \
+ -H "Authorization: Bearer TOKEN" \
+ -H 'content-type: application/json' \
+ --data-raw '{"account_id":"ACCOUNT_ID","add_account_owners_admin_access":true}' | jq
+```
+
+### Create an organization {#create-org-api}
+
+To create an organization use the following call. Replace `ORG_NAME`
+with a name for your new organization.
+
+```
+curl -sXPOST \
+ https://api.aiven.io/v1/account \
+ -H "Authorization: Bearer TOKEN" \
+ -H 'content-type: application/json' \
+ --data '{"account_name":"ORG_NAME"}' | jq
+```
