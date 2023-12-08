@@ -46,27 +46,39 @@ def main(docs_path, destination_repo, image_source_path, src_repo_path):
 def add_includes(docs_path):
 
     files = [
-        os.path.join(docs_path,"products/m3db/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/opensearch/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/cassandra/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/clickhouse/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/flink/reference/advanced-params.md"),
         os.path.join(docs_path,"products/grafana/reference/advanced-params.md"),
         os.path.join(docs_path,"products/influxdb/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/m3db/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/kafka/kafka-mirrormaker/reference/advanced-params.md"),
         os.path.join(docs_path,"products/kafka/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/kafka/kafka-connect/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/cassandra/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/m3db/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/mysql/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/opensearch/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/postgresql/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/redis/reference/advanced-params.md"),
     ]
 
     for file_path in files:
         service = file_path.split(os.path.sep)[len(docs_path.split(os.path.sep)) + 1]
 
         with open(file_path, 'a') as file:
-            content_to_append = f'\nimport Reference from \'@site/static/includes/config-{service}.md\';\n\n<Reference />;\n'
+            content_to_append = f'\nimport Reference from \'@site/static/includes/config-{service}.md\';\n\n<Reference />\n'
             file.write(content_to_append)
 
     path = os.path.join(docs_path,"products/m3db/reference/advanced-params-m3aggregator.md")
     with open(path, 'a') as file:
-        content_to_append = f'\nimport Reference from \'@site/static/includes/config-m3aggregator.md\';\n\n<Reference />;\n'
+        content_to_append = f'\nimport Reference from \'@site/static/includes/config-m3aggregator.md\';\n\n<Reference />\n'
+        file.write(content_to_append)
+
+    path = os.path.join(docs_path,"products/kafka/kafka-connect/reference")
+    with open(path, 'a') as file:
+        content_to_append = f'\nimport Reference from \'@site/static/includes/config-kafka_connect.md\';\n\n<Reference />\n'
+        file.write(content_to_append)
+
+    path = os.path.join(docs_path,"products/kafka/kafka-mirrormaker/reference")
+    with open(path, 'a') as file:
+        content_to_append = f'\nimport Reference from \'@site/static/includes/config-kafka_mirrormaker.md\';\n\n<Reference />\n'
         file.write(content_to_append)
 
 def convert_docs_to_md(
