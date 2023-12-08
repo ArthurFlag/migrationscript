@@ -30,17 +30,44 @@ def main(docs_path, destination_repo, image_source_path, src_repo_path):
     copy_folder_contents(code_source_path, code_destination_path)
     copy_folder_contents(include_source_path, include_source_path_temp)
     copy_folder_contents(docs_path, source_path_temp)
+    delete_file(os.path.join(docs_path, "community.rst"))
 
-    fix_include_paths(source_path_temp, include_source_path_temp)
+    # fix_include_paths(source_path_temp, include_source_path_temp)
     convert_includes_to_md(log_file_path, include_source_path, include_destination_path)
     convert_docs_to_md(
         source_path_temp, log_file_path, destination_docs_path
     )
     cleanup_md(destination_docs_path, destination_repo)
+    add_includes(destination_docs_path)
     # delete_complex_files(destination_docs_path)
     print("✅  Conversion done.")
     nextsteps()
 
+def add_includes(docs_path):
+
+    files = [
+        os.path.join(docs_path,"products/m3db/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/opensearch/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/grafana/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/influxdb/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/m3db/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/kafka/kafka-mirrormaker/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/kafka/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/kafka/kafka-connect/reference/advanced-params.md"),
+        os.path.join(docs_path,"products/cassandra/reference/advanced-params.md"),
+    ]
+
+    for file_path in files:
+        service = file_path.split(os.path.sep)[len(docs_path.split(os.path.sep)) + 1]
+
+        with open(file_path, 'a') as file:
+            content_to_append = f'\nimport Reference from \'@site/static/includes/config-{service}.md\';\n\n<Reference />;\n'
+            file.write(content_to_append)
+
+    path = os.path.join(docs_path,"products/m3db/reference/advanced-params-m3aggregator.md")
+    with open(path, 'a') as file:
+        content_to_append = f'\nimport Reference from \'@site/static/includes/config-m3aggregator.md\';\n\n<Reference />;\n'
+        file.write(content_to_append)
 
 def convert_docs_to_md(
     source_path, log_file_path, destination_docs_path
@@ -107,13 +134,16 @@ def update_include_link_rst(rst_content, include_source_path):
 
 def nextsteps():
     out = """
-Now take care of these topics manually:
+Take care of these topics manually:
+
 - https://docs.aiven.io/docs/products/clickhouse/howto/data-service-integration
 - https://docs.aiven.io/docs/products/mysql/concepts/max-number-of-connections
 - /Users/arthurflageul/repos/aiven-docs/docs/products/postgresql/reference/list-of-extensions.md
 - docs/products/kafka/howto/enable-oidc.rst
+
+Tables:
 - build the docs and search for ---+ in the build folder to fix broken tables.
-- recreate includes - rerun pandoc without the fix_include_path if needed, to see the warnings.
+
 """
     print(out)
 
