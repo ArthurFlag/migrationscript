@@ -30,7 +30,6 @@ def main(docs_path, destination_repo, image_source_path, src_repo_path):
     copy_folder_contents(code_source_path, code_destination_path)
     copy_folder_contents(include_source_path, include_source_path_temp)
     copy_folder_contents(docs_path, source_path_temp)
-    delete_file(os.path.join(docs_path, "community.rst"))
 
     # fix_include_paths(source_path_temp, include_source_path_temp)
     convert_includes_to_md(log_file_path, include_source_path, include_destination_path)
@@ -39,7 +38,6 @@ def main(docs_path, destination_repo, image_source_path, src_repo_path):
     )
     cleanup_md(destination_docs_path, destination_repo)
     add_includes(destination_docs_path)
-    # delete_complex_files(destination_docs_path)
     print("✅  Conversion done.")
     nextsteps()
 
@@ -55,9 +53,10 @@ def add_includes(docs_path):
         os.path.join(docs_path,"products/m3db/reference/advanced-params.md"),
         os.path.join(docs_path,"products/mysql/reference/advanced-params.md"),
         os.path.join(docs_path,"products/opensearch/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/postgresql/reference/advanced-params.md"),
         os.path.join(docs_path,"products/redis/reference/advanced-params.md"),
     ]
+    # deal with this one later
+    # os.path.join(docs_path,"products/postgresql/reference/advanced-params.md"),
 
     for file_path in files:
         service = file_path.split(os.path.sep)[len(docs_path.split(os.path.sep)) + 1]
@@ -71,12 +70,12 @@ def add_includes(docs_path):
         content_to_append = f'\nimport Reference from \'@site/static/includes/config-m3aggregator.md\';\n\n<Reference />\n'
         file.write(content_to_append)
 
-    path = os.path.join(docs_path,"products/kafka/kafka-connect/reference")
+    path = os.path.join(docs_path,"products/kafka/kafka-connect/reference/advanced-params.md")
     with open(path, 'a') as file:
         content_to_append = f'\nimport Reference from \'@site/static/includes/config-kafka_connect.md\';\n\n<Reference />\n'
         file.write(content_to_append)
 
-    path = os.path.join(docs_path,"products/kafka/kafka-mirrormaker/reference")
+    path = os.path.join(docs_path,"products/kafka/kafka-mirrormaker/reference/advanced-params.md")
     with open(path, 'a') as file:
         content_to_append = f'\nimport Reference from \'@site/static/includes/config-kafka_mirrormaker.md\';\n\n<Reference />\n'
         file.write(content_to_append)
@@ -429,13 +428,6 @@ def process_custom_markup(md_content):
     md_content = re.sub(r"<(https://.*)>", r"[\1](\1)", md_content, flags=re.MULTILINE)
 
     return md_content
-
-
-def delete_complex_files(destination_repo):
-    # delete files that we need to handle better later
-    community_folder = os.path.join(destination_repo, "community")
-    delete_folder(community_folder)
-    delete_file(destination_repo + "community.md")
 
 
 def copy_folder_contents(source_path, destination_path):
