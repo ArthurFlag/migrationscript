@@ -250,7 +250,7 @@ def extract_title(path):
 
 def fix_no_name_links(md_content, repo_path):
     # look for `somepath`{.interpreted-text role="doc"}
-    pattern_link_no_title = r"`(((\.\.)|(\/)).*?)`{\.interpreted-text\srole=\"doc\"}"
+    pattern_link_no_title = r"`(((\.\.)|(\/)).*?)`{\.interpreted-text\s+role=\"doc\"}"
     match = re.search(pattern_link_no_title, md_content)
     if match:
         path = match.group(1)
@@ -311,7 +311,7 @@ def fix_refs(md_content, all_titles):
                 return f"[{subdictionary[anchor]}]({delete_folders_until_docs(file_path)}#{anchor})"
 
         # If no match is found, return the original match
-        print(f"⚠️  Couldn't resolve ref. {anchor}")
+        # print(f"⚠️  Couldn't resolve ref. {anchor}")
         return match.group(0)
 
     # Use re.sub() with the custom replace function
@@ -353,7 +353,7 @@ def fix_refs_name(md_content, all_titles):
                 return f"[{name.strip()}]({link.strip()})"
 
         # If no match is found, return the original match
-        print(f"⚠️  Couldn't resolve ref. {name}: {anchor}")
+        # print(f"⚠️  Couldn't resolve ref. {name}: {anchor}")
         return match.group(0)
 
     # Use re.sub() with the custom replace function
@@ -437,7 +437,6 @@ def cleanup_md(md_folder_path, destination_repo_path):
                     md_content = fix_literal_includes(md_content)
                     md_content = process_seealso_blocks(md_content)
                     md_content = process_topic_blocks(md_content)
-                    md_content = process_custom_markup(md_content)
                     md_content = comment_out_mermaid(md_content)
                     # md_content_no_grids = process_grids(md_content_titles_adm_docref_fixed)
 
@@ -458,7 +457,8 @@ def cleanup_md(md_folder_path, destination_repo_path):
                     md_content = fix_no_name_links(md_content, destination_repo_path)
                     md_content = fix_refs(md_content, all_titles)
                     md_content = fix_refs_name(md_content, all_titles)
-
+                    md_content = replace_anchors_in_content(md_content)
+                    md_content = process_custom_markup(md_content)
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
                     md_file.write(md_content)
 
@@ -506,6 +506,46 @@ def process_custom_markup(md_content):
     md_content = re.sub(r"<(https://.*)>", r"[\1](\1)", md_content, flags=re.MULTILINE)
 
     return md_content
+
+def replace_anchors_in_content(md_content):
+    pattern = r"`(.*?)\s?<(.*)>`{\.interpreted-text\s*role=\"ref\"}"
+
+    anchors_mapping = {
+        "avn-service-logs": "/docs/tools/cli/service#avn-service-logs",
+        "avn-service-metrics": "/docs/tools/cli/service#avn-service-metrics",
+        "avn-cloud-list": "/docs/tools/cli/cloud#avn-cloud-list",
+        "avn-service-cli": "/docs/tools/cli/service.html#avn-service-cli",
+        "avn-service-database-create": "/docs/tools/cli/service/database.html#avn-service-database-create",
+        "zookeeper": "#zookeeper",
+        "avn-user-access-token-create": "/docs/tools/cli/user/user-access-token",
+        "avn-service-user-create": "/docs/tools/cli/service/user#avn-service-user-create",
+        "replicated-database-engine": "/docs/products/clickhouse/concepts/service-architecture#replicated-database-engine",
+        "replicated-table-engine": "/docs/products/clickhouse/concepts/service-architecture#replicated-table-engine",
+        "manage-roles-and-permissions": "/docs/products/clickhouse/howto/manage-users-roles#manage-roles-and-permissions",
+        "networking-with-vpc-peering":  "/docs/platform/concepts/cloud-security#networking-with-vpc-peering",
+        "continuous-migration": "/docs/products/mysql/howto/migrate-db-to-aiven-via-console#about-migrating-via-console",
+        "mysqldump-migration": "/docs/products/mysql/howto/migrate-db-to-aiven-via-console",
+        "set-service-contacts": "/docs/platform/howto/technical-emails#set-service-contacts",
+        "set-project-contacts": "/docs/platform/howto/technical-emails#set-project-contacts",
+        "enable-prometheus": "/docs/platform/howto/integrations/prometheus-metrics#enable-prometheus",
+        "remote-storage-overview": "/docs/products/kafka/howto/tiered-storage-overview-page#remote-storage-overview",
+        "opensearch-backup": "/docs/products/opensearch/concepts/backups"
+    }
+
+    def replace_match(match):
+        name = match.group(1)
+        anchor = match.group(2)
+
+        if anchor in anchors_mapping:
+            replacement = f"[{name}]({anchors_mapping[anchor]})"
+            return replacement
+        else:
+            # Return the original match if anchor is not in anchors_mapping
+            print(f"{anchor} not found in mapping.")
+            return match.group(0)
+
+    updated_content = re.sub(pattern, replace_match, md_content)
+    return updated_content
 
 
 def copy_folder_contents(source_path, destination_path):
