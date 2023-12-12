@@ -8,7 +8,7 @@ populate the dashboard with the log events from the Aiven service.
 
 :::tip
 You can automate the creation of the Loggly integration using the
-[Aiven CLI dedicated command](/docs/myfolder/mypage#avn_service_integration_create).
+[Creating integration](/docs/myfolder/mypage#avn_service_integration_create).
 :::
 
 For detailed explanations on the OIDC parameters, refer to the

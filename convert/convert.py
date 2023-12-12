@@ -298,20 +298,62 @@ def delete_folders_until_docs(abs_path):
 
 
 def fix_refs(md_content, all_titles):
-    pattern = r"`(.*?)\s*<(.*?)>`{\.interpreted-text\s+role=\"ref\"}"
+    # `anchor`{\.interpreted-...
+    pattern = r"`([^<>`]+)`{\.interpreted-text\s+role=\"ref\"}"
 
     def replace(match):
-        group1_value = match.group(1)
-        group2_value = match.group(2)
+        anchor = match.group(1)
 
         # Loop through all_titles dictionary to find the matching key
         for file_path, subdictionary in all_titles.items():
-            if group2_value in subdictionary:
+            if anchor in subdictionary:
                 # Replace the match with the formatted link
-                return f"[{group1_value}]({delete_folders_until_docs(file_path)}#{group2_value})"
+                return f"[{subdictionary[anchor]}]({delete_folders_until_docs(file_path)}#{anchor})"
 
         # If no match is found, return the original match
-        print(f"⚠️  Couldn't resolve ref. {group1_value}: {group2_value}")
+        print(f"⚠️  Couldn't resolve ref. {anchor}")
+        return match.group(0)
+
+    # Use re.sub() with the custom replace function
+    result = re.sub(pattern, replace, md_content)
+
+    return result
+
+
+def fix_anchor_links_same_page(md_content, all_titles, md_file_path):
+    pattern = r"`([^<>`]+?)`{\.interpreted-text\s+role=\"ref\"}"
+    titles = all_titles[md_file_path]
+
+    def replace_match(match):
+        anchor = match.group(1)
+        title = titles.get(anchor)
+        if title is not None:
+            return f"[{title}](#{anchor})"
+        else:
+            # Return the original match if not found in titles dictionary
+            return match.group(0)
+
+    # Use re.sub to replace the matches with the dictionary values
+    updated_content = re.sub(pattern, replace_match, md_content)
+    return updated_content
+
+def fix_refs_name(md_content, all_titles):
+    # `name <anchor>`{\.interpreted-...
+    pattern = r"`([^<>`]+)\s?<(.*?)>`{\.interpreted-text\s+role=\"ref\"}"
+
+    def replace(match):
+        name = match.group(1)
+        anchor = match.group(2)
+
+        # Loop through all_titles dictionary to find the matching key
+        for file_path, subdictionary in all_titles.items():
+            if anchor in subdictionary:
+                # Replace the match with the formatted link
+                link = delete_folders_until_docs(file_path) + "#" + anchor
+                return f"[{name.strip()}]({link.strip()})"
+
+        # If no match is found, return the original match
+        print(f"⚠️  Couldn't resolve ref. {name}: {anchor}")
         return match.group(0)
 
     # Use re.sub() with the custom replace function
@@ -415,6 +457,7 @@ def cleanup_md(md_folder_path, destination_repo_path):
                     md_content = fix_anchor_links_same_page(md_content, all_titles, md_file_path)
                     md_content = fix_no_name_links(md_content, destination_repo_path)
                     md_content = fix_refs(md_content, all_titles)
+                    md_content = fix_refs_name(md_content, all_titles)
 
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
                     md_file.write(md_content)
@@ -472,25 +515,6 @@ def copy_folder_contents(source_path, destination_path):
         shutil.copytree(source_path, destination_path, dirs_exist_ok=True)
     except Exception as e:
         print(f"An error occurred: {e}")
-
-
-def fix_anchor_links_same_page(md_content, all_titles, md_file_path):
-    pattern = r"`([^<>`]+?)`{\.interpreted-text\srole=\"ref\"}"
-    titles = all_titles[md_file_path]
-
-    # Define the substitution function
-    def replace_match(match):
-        group1_value = match.group(1)
-        title = titles.get(group1_value)
-        if title is not None:
-            return f"[{title}](#{group1_value})"
-        else:
-            # Return the original match if not found in titles dictionary
-            return match.group(0)
-
-    # Use re.sub to replace the matches with the dictionary values
-    updated_content = re.sub(pattern, replace_match, md_content)
-    return updated_content
 
 def extract_titles_with_anchors(md_content):
     title_pattern = r"#+ (.+?) \{#(.+?)\}"

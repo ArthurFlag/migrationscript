@@ -8,7 +8,7 @@ populate the dashboard with the log events from the Aiven service.
 
 :::tip
 You can automate the creation of the Loggly integration using the
-`Aiven CLI dedicated command <avn_service_integration_create>`{.interpreted-text
+`avn_service_integration_create`{.interpreted-text
 role="ref"}.
 :::
 
