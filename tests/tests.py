@@ -150,7 +150,13 @@ class TestConvert(unittest.TestCase):
         )
         with open(input_file_path, "r", encoding="utf-8") as input_file:
             input_content = input_file.read()
-        fixed_content = fix_anchor_links(input_content)
+        all_titles = {
+            input_file_path: {
+                "title": "Assign standalone",
+                "create-org-api": "Create an organization"
+            }
+        }
+        fixed_content = fix_anchor_links_same_page(input_content, all_titles, input_file_path )
         with open(
             expected_output_file_path, "r", encoding="utf-8"
         ) as expected_output_file:
@@ -267,6 +273,32 @@ class TestConvert(unittest.TestCase):
             expected_output_content = expected_output_file.read()
 
         self.assertEqual(fixed_content, expected_output_content)
+
+    def test_refs(self):
+        titles={
+            "/thing/docs/myfolder/mypage":{
+                "avn_service_integration_create": "Creating integration"
+            }
+        }
+        input_file_path = os.path.join(
+            os.path.dirname(__file__), "md_files", "ref.md"
+        )
+        expected_output_file_path = os.path.join(
+            os.path.dirname(__file__),  "md_files", "ref_expected.md"
+        )
+
+        with open(input_file_path, "r", encoding="utf-8") as input_file:
+            input_content = input_file.read()
+
+        fixed_content = fix_refs(input_content,titles)
+
+        with open(
+            expected_output_file_path, "r", encoding="utf-8"
+        ) as expected_output_file:
+            expected_output_content = expected_output_file.read()
+
+        self.assertEqual(fixed_content, expected_output_content)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -4,8 +4,9 @@ Note
 :::
 
 For backups and restoration, Aiven utilises the popular Open Source
-backup daemon [PGHoard](Terminology PGHoard), which Aiven maintains. It makes real-time copies of
-[WAL](Terminology PGWAL) files to an
+backup daemon `PGHoard <Terminology PGHoard>`{.interpreted-text
+role="ref"}, which Aiven maintains. It makes real-time copies of
+`WAL<Terminology PGWAL>`{.interpreted-text role="ref"} files to an
 object store in compressed and encrypted format.
 :::
 

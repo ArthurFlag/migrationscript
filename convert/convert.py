@@ -55,7 +55,7 @@ def add_includes(docs_path):
         os.path.join(docs_path,"products/opensearch/reference/advanced-params.md"),
         os.path.join(docs_path,"products/redis/reference/advanced-params.md"),
     ]
-    # deal with this one later
+    # deal with this one
     # os.path.join(docs_path,"products/postgresql/reference/advanced-params.md"),
 
     for file_path in files:
@@ -249,8 +249,8 @@ def extract_title(path):
 
 
 def fix_no_name_links(md_content, repo_path):
-    # look for `somepath`{.interpreted-text role=".*?"}
-    pattern_link_no_title = r"`(((\.\.)|(\/)).*?)`{\.interpreted-text\s+role=\".*?\"}"
+    # look for `somepath`{.interpreted-text role="doc"}
+    pattern_link_no_title = r"`(((\.\.)|(\/)).*?)`{\.interpreted-text\srole=\"doc\"}"
     match = re.search(pattern_link_no_title, md_content)
     if match:
         path = match.group(1)
@@ -270,8 +270,54 @@ def fix_no_name_links(md_content, repo_path):
 
 
 def fix_full_links(md_content):
-    pattern = r"`(.*?)\s*<(.*?)>`{\.interpreted-text\s+role=\"...\"}"
+    pattern = r"`(.*?)\s*<(.*?)>`{\.interpreted-text\s+role=\"doc\"}"
     return re.sub(pattern, r"[\1](\2)", md_content)
+
+
+def delete_folders_until_docs(abs_path):
+    # Validate if the provided path is absolute
+    if not os.path.isabs(abs_path):
+        raise ValueError("The provided path must be an absolute path.")
+
+    # Split the path into components
+    abs_path, _ = os.path.splitext(abs_path)
+    path_components = abs_path.split(os.path.sep)
+
+    # Find the index of 'docs' in the path
+    docs_index = path_components.index('docs') if 'docs' in path_components else -1
+
+    # Check if 'docs' is found in the path
+    if docs_index != -1:
+        # Join the path components starting from 'docs'
+        path_after_docs = os.path.join(os.path.sep, *path_components[docs_index:])
+
+        return path_after_docs
+    else:
+        # 'docs' not found in the path
+        raise ValueError("The '/docs/' folder was not found in the provided path.")
+
+
+def fix_refs(md_content, all_titles):
+    pattern = r"`(.*?)\s*<(.*?)>`{\.interpreted-text\s+role=\"ref\"}"
+
+    def replace(match):
+        group1_value = match.group(1)
+        group2_value = match.group(2)
+
+        # Loop through all_titles dictionary to find the matching key
+        for file_path, subdictionary in all_titles.items():
+            if group2_value in subdictionary:
+                # Replace the match with the formatted link
+                return f"[{group1_value}]({delete_folders_until_docs(file_path)}#{group2_value})"
+
+        # If no match is found, return the original match
+        print(f"⚠️  Couldn't resolve ref. {group1_value}: {group2_value}")
+        return match.group(0)
+
+    # Use re.sub() with the custom replace function
+    result = re.sub(pattern, replace, md_content)
+
+    return result
 
 
 def fix_literal_includes(md_content):
@@ -333,17 +379,17 @@ def process_topic_blocks(md_content):
 
 def cleanup_md(md_folder_path, destination_repo_path):
     print("\n🧹 Cleaning up MD files...")
+    all_titles = {}
     for root, dirs, files in os.walk(md_folder_path):
         for file in files:
             if file.endswith(".md"):
                 md_file_path = os.path.join(root, file)
-                # print(f"Working on {md_file_path}")
 
                 with open(md_file_path, "r", encoding="utf-8") as md_file:
                     md_content = md_file.read()
                     md_content = update_title(md_content)
+                    all_titles[md_file_path]=extract_titles_with_anchors(md_content)
                     md_content = fix_admonitions(md_content)
-                    md_content = fix_anchor_links(md_content)
                     md_content = fix_full_links(md_content)
                     md_content = fix_standalone_links(md_content)
                     md_content = fix_literal_includes(md_content)
@@ -357,7 +403,6 @@ def cleanup_md(md_folder_path, destination_repo_path):
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
                     # print(f"Wrote {md_file_path}")
                     md_file.write(md_content)
-
     # take a second round for link and title resolution
     for root, dirs, files in os.walk(md_folder_path):
         for file in files:
@@ -367,7 +412,9 @@ def cleanup_md(md_folder_path, destination_repo_path):
 
                 with open(md_file_path, "r", encoding="utf-8") as md_file:
                     md_content = md_file.read()
+                    md_content = fix_anchor_links_same_page(md_content, all_titles, md_file_path)
                     md_content = fix_no_name_links(md_content, destination_repo_path)
+                    md_content = fix_refs(md_content, all_titles)
 
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
                     md_file.write(md_content)
@@ -406,20 +453,8 @@ def process_custom_markup(md_content):
     md_content = md_content.replace('{width="100.0%"}', "")
     md_content = md_content.replace('{height="342px"}', "")
     md_content = md_content.replace('{height="249px"}', "")
-    md_content = md_content.replace('](avn_service_integration_endpoint_create)', "](/docs/tools/cli/service/integration#avn_service_integration_endpoint_create)")
-    md_content = md_content.replace('](avn_service_integration_create)', "](/docs/tools/cli/service/integration#avn_service_integration_create)")
-    md_content = md_content.replace('](avn_service_integration_endpoint_list)', "](/docs/tools/cli/service/integration#avn_service_integration_endpoint_list)")
     md_content = md_content.replace('](sales@aiven.io) ', "](mailto:sales@aiven.io)")
-    md_content = md_content.replace("](avn-service-logs)","](/docs/tools/cli/service#avn-service-logs)")
     md_content = md_content.replace("::: {#Terminology", ":::Terminology")
-    md_content = md_content.replace("](avn-create-update-project)","](/docs/tools/cli/service#avn-create-update-project)")
-
-    md_content = md_content.replace("](avn-delete-project)","](/docs/tools/cli/service#avn-delete-project)")
-    md_content = md_content.replace("](avn-cli-service-update)","](/docs/tools/cli/service#avn-cli-service-update)")
-    md_content = md_content.replace("](avn-service-logs)","](/docs/tools/cli/service#avn-service-logs)")
-    md_content = md_content.replace("](avn-service-metrics)","](/docs/tools/cli/service#avn-service-metrics)")
-    md_content = md_content.replace("](avn-cli-service-terminate)","](/docs/tools/cli/service#avn-cli-service-terminate)")
-    md_content = md_content.replace("](create-org-api)","](#create-org-api)")
     md_content = re.sub(r"{\.interpreted-text\s*?role=\"bdg-secondary\"}","",md_content)
 
     md_content = re.sub(
@@ -439,27 +474,28 @@ def copy_folder_contents(source_path, destination_path):
         print(f"An error occurred: {e}")
 
 
-def fix_anchor_links(md_content):
-    # Define a regular expression pattern to find occurrences of {#...}
-    pattern = r"`([^<>]+)`{\.interpreted-text role=\"ref\"}"
-    title_anchor_dict = extract_titles_with_anchors(md_content)
+def fix_anchor_links_same_page(md_content, all_titles, md_file_path):
+    pattern = r"`([^<>`]+?)`{\.interpreted-text\srole=\"ref\"}"
+    titles = all_titles[md_file_path]
 
     # Define the substitution function
     def replace_match(match):
-        title = title_anchor_dict.get(match.group(1), match.group(1))
-        return f"[{title}](#{match.group(1)})"
+        group1_value = match.group(1)
+        title = titles.get(group1_value)
+        if title is not None:
+            return f"[{title}](#{group1_value})"
+        else:
+            # Return the original match if not found in titles dictionary
+            return match.group(0)
 
     # Use re.sub to replace the matches with the dictionary values
     updated_content = re.sub(pattern, replace_match, md_content)
-
     return updated_content
-
 
 def extract_titles_with_anchors(md_content):
     title_pattern = r"#+ (.+?) \{#(.+?)\}"
     title_matches = re.findall(title_pattern, md_content)
     titles_and_anchors = {anchor: title for title, anchor in title_matches}
-
     return titles_and_anchors
 
 def comment_out_mermaid(md_content):
@@ -477,6 +513,7 @@ def comment_out_mermaid(md_content):
 # `api/examples`{.interpreted-text role="doc"}
 # ``` {.bash caption="Expected output"}
 # convert variables
+# ref with link name `Enable Prometheus on your Aiven project <enable-prometheus>`{.interpreted-text role="ref"}
 
 if __name__ == "__main__":
     main()
