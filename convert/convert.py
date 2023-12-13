@@ -145,16 +145,8 @@ def update_include_link_rst(rst_content, include_source_path):
 
 def nextsteps():
     out = """
-Take care of these topics manually:
-
-- https://docs.aiven.io/docs/products/clickhouse/howto/data-service-integration
-- https://docs.aiven.io/docs/products/mysql/concepts/max-number-of-connections
-- /Users/arthurflageul/repos/aiven-docs/docs/products/postgresql/reference/list-of-extensions.md
-- docs/products/kafka/howto/enable-oidc.rst
-
 Tables:
-- build the docs and search for ---+ in the build folder to fix broken tables.
-
+- Build the Docusaurus docs and search for ---+ in the build folder to fix broken tables.
 """
     print(out)
 
@@ -439,6 +431,7 @@ def cleanup_md(md_folder_path, destination_repo_path):
                     md_content = process_dropdowns(md_content)
                     md_content = process_topic_blocks(md_content)
                     md_content = comment_out_mermaid(md_content)
+                    md_content = fix_codeblock_title(md_content)
                     # md_content_no_grids = process_grids(md_content_titles_adm_docref_fixed)
 
                 # write the changes
@@ -566,6 +559,16 @@ def copy_folder_contents(source_path, destination_path):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+def fix_codeblock_title(md_content):
+    pattern = r"``` {\.(.*?) caption=\"(.*)\"}"
+
+    # Define the replacement pattern
+    replacement = r'```\1 title="\2"'
+
+    # Perform the replacement with re.MULTILINE and re.DOTALL flags
+    result = re.sub(pattern, replacement, md_content, flags=re.MULTILINE | re.DOTALL)
+    return result
+
 def extract_titles_with_anchors(md_content):
     title_pattern = r"#+ (.+?) \{#(.+?)\}"
     title_matches = re.findall(title_pattern, md_content)
@@ -579,15 +582,8 @@ def comment_out_mermaid(md_content):
     return updated_content
 
 # TODO
-# find `delete`{.interpreted-text role="bdg-secondary"}
-# `console-authentication`{.interpreted-text role="ref"} (same page link)
-# `avn_service_plan`{.interpreted-text role="ref"}
-#
 # check docs/products/kafka/howto/prevent-full-disks.md
-# `api/examples`{.interpreted-text role="doc"}
-# ``` {.bash caption="Expected output"}
 # convert variables
-# ref with link name `Enable Prometheus on your Aiven project <enable-prometheus>`{.interpreted-text role="ref"}
 
 if __name__ == "__main__":
     main()
