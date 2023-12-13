@@ -22,4 +22,23 @@ order by
 
 </details>
 
-Content
+5.  In **Create PostgreSQL integration database** wizard, select one of
+    the following options:
+    -   To add an integration database to a service that is not yet
+        integrated, go to the **New data service integration** tab.
+
+        <details><summary>
+        Expand for next steps
+        </summary>
+
+        1.  Select a service from the list of services available for
+            integration.
+        2.  Select **Continue**.
+        3.  In the **Add integration databases** section, enter database
+            names and schema names and select **Integrate & Create**
+            when ready.
+
+        You can preview the created databases by selecting **Databases
+        and tables** from the sidebar.
+
+        </details>

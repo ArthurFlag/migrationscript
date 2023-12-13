@@ -549,10 +549,10 @@ def replace_anchors_in_content(md_content):
     return updated_content
 
 def process_dropdowns(md_content):
-  pattern = r"(\s+^\s*):::dropdown\s*$(.*?)\n\n(.*?)^\s*:::\s*$"
+  pattern = r"(\s+)^(\s*):::dropdown\s*$(.*?)\n\n(.*?)^\s*:::\s*$"
 
   # Define the replacement pattern
-  replacement = r"\1<details><summary>\2\n</summary>\n\n\3\n</details>\n"
+  replacement = r"\1\2<details><summary>\3\n\2</summary>\n\n\4\n\2</details>\n"
 
   # Perform the replacement with re.MULTILINE and re.DOTALL flags
   result = re.sub(pattern, replacement, md_content, flags=re.MULTILINE | re.DOTALL)
