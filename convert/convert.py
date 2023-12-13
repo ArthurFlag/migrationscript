@@ -436,6 +436,7 @@ def cleanup_md(md_folder_path, destination_repo_path):
                     md_content = fix_standalone_links(md_content)
                     md_content = fix_literal_includes(md_content)
                     md_content = process_seealso_blocks(md_content)
+                    md_content = process_dropdowns(md_content)
                     md_content = process_topic_blocks(md_content)
                     md_content = comment_out_mermaid(md_content)
                     # md_content_no_grids = process_grids(md_content_titles_adm_docref_fixed)
@@ -547,6 +548,15 @@ def replace_anchors_in_content(md_content):
     updated_content = re.sub(pattern, replace_match, md_content)
     return updated_content
 
+def process_dropdowns(md_content):
+  pattern = r"(\s+^\s*):::dropdown\s*$(.*?)\n\n(.*?)^\s*:::\s*$"
+
+  # Define the replacement pattern
+  replacement = r"\1<details><summary>\2\n</summary>\n\n\3\n</details>\n"
+
+  # Perform the replacement with re.MULTILINE and re.DOTALL flags
+  result = re.sub(pattern, replacement, md_content, flags=re.MULTILINE | re.DOTALL)
+  return result
 
 def copy_folder_contents(source_path, destination_path):
     print(f"📸 Copying {source_path} into {destination_path}...")
