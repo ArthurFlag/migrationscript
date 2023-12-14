@@ -180,6 +180,7 @@ def update_title(md_content):
 
         title_without_backticks = title_without_backticks.replace("®\\*", "®*")
         title_without_backticks = title_without_backticks.replace("\\'s", "'s")
+        title_without_backticks = title_without_backticks.replace("{#opensearch-backup}","")
 
         yaml_front_matter = f"---\ntitle: {title_without_backticks}\n---\n"
 
@@ -432,7 +433,8 @@ def cleanup_md(md_folder_path, destination_repo_path):
                     md_content = process_topic_blocks(md_content)
                     md_content = comment_out_mermaid(md_content)
                     md_content = fix_codeblock_title(md_content)
-                    # md_content_no_grids = process_grids(md_content_titles_adm_docref_fixed)
+                    md_content = process_grids(md_content)
+
 
                 # write the changes
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
@@ -456,16 +458,52 @@ def cleanup_md(md_folder_path, destination_repo_path):
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
                     md_file.write(md_content)
 
+    # fix_grids(md_folder_path)
+
+def fix_grids(md_folder_path):
+  # only fix grids on landiing pages.
+  pages = ["tools.md",
+           "get-started.md",
+           "integrations.md",
+           "products/cassandra.md",
+           "products/clickhouse.md",
+           "products/dragonfly.md",
+           "products/flink.md",
+           "products/grafana.md",
+           "products/influxdb.md",
+           "products/kafka.md",
+           "products/m3db.md",
+           "products/mysql.md",
+           "products/opensearch.md",
+           "products/postgres.md",
+           "products/redis.md",
+           "products/cassandra/reference.md",
+           "products/cassandra/howto/list-get-started.md",
+           "products/clickhouse/concepts.md",
+           "products/clickhouse/list-overview.md",
+           "products/clickhouse/reference.md",
+           "products/clickhouse/list-connect-to-service.md",
+           "products/clickhouse/howto/list-get-started.md",
+           "products/clickhouse/howto/list-integrations.md",
+           ]
+  # join path with md_folder_path
+  for p in pages:
+    try:
+      with open(p, "r", encoding="utf-8") as md_file:
+        md_content = md_file.read()
+        md_content = process_grids(md_content)
+      with open(p, "w", encoding="utf-8") as md_file:
+        md_file.write(md_content)
+    except FileNotFoundError:
+      print(f"File not found: {p}")
+
 
 def process_grids(md_content):
     # deletes grid instructions from the content
-    card_declaration = r"`^::: \{\.grid-item-card.*?\n(.*?)^:::$\n`"
-    grid_declaration = r"`^::: grid\n.*?$\n(.*?)^:::$`"
-    content_fixed = re.sub(
-        card_declaration, "", md_content, flags=re.MULTILINE | re.DOTALL
-    )
+    grid_declaration = r"^::: ?grid\b.*:::"
+    fix =r"import DocCardList from '@theme/DocCardList';\n\n<DocCardList />"
     content_final = re.sub(
-        grid_declaration, "", content_fixed, flags=re.MULTILINE | re.DOTALL
+        grid_declaration, fix, md_content, flags=re.MULTILINE | re.DOTALL
     )
     return content_final
 
@@ -523,7 +561,9 @@ def replace_anchors_in_content(md_content):
         "set-project-contacts": "/docs/platform/howto/technical-emails#set-project-contacts",
         "enable-prometheus": "/docs/platform/howto/integrations/prometheus-metrics#enable-prometheus",
         "remote-storage-overview": "/docs/products/kafka/howto/tiered-storage-overview-page#remote-storage-overview",
-        "opensearch-backup": "/docs/products/opensearch/concepts/backups"
+        "opensearch-backup": "/docs/products/opensearch/concepts/backups",
+        "reference": "#reference",
+        "stop-migration-mysql": "#stop-migration-mysql"
     }
 
     def replace_match(match):
