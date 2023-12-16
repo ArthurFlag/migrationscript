@@ -407,7 +407,7 @@ def process_seealso_blocks(md_content):
 
 def process_topic_blocks(md_content):
     pattern = r":::topic\n\*\*(.*?)\*\*\n"
-    updated_content = re.sub(pattern, r":::note \1", md_content)
+    updated_content = re.sub(pattern, r":::note[\1]", md_content)
 
     return updated_content
 
@@ -435,11 +435,11 @@ def cleanup_md(md_folder_path, destination_repo_path):
                     md_content = fix_codeblock_title(md_content)
                     md_content = process_grids(md_content)
 
-
                 # write the changes
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
                     # print(f"Wrote {md_file_path}")
                     md_file.write(md_content)
+
     # take a second round for link and title resolution
     for root, dirs, files in os.walk(md_folder_path):
         for file in files:
@@ -457,8 +457,6 @@ def cleanup_md(md_folder_path, destination_repo_path):
                     md_content = process_custom_markup(md_content)
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
                     md_file.write(md_content)
-
-    # fix_grids(md_folder_path)
 
 def fix_grids(md_folder_path):
   # only fix grids on landiing pages.

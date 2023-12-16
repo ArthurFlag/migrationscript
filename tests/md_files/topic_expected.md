@@ -2,7 +2,7 @@
 title: Add or remove customer contacts for your AWS custom cloud in Aiven
 ---
 
-:::note Custom clouds
+:::note[Custom clouds]
 [Enable bring your own cloud (BYOC) with Aiven](/docs/platform/howto/byoc/enable-byoc).
 :::
 
@@ -23,6 +23,6 @@ your custom cloud using [Aiven Console](https://console.aiven.io/).
 
 ## Update the contacts list
 
-:::note Result
+:::note[Result]
 The list of contacts for your cloud has been updated.
 :::
