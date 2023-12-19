@@ -26,6 +26,7 @@ def main(docs_path, destination_repo, image_source_path, src_repo_path):
     delete_folder(source_path_temp)
     delete_folder(include_destination_path)
     delete_folder(include_source_path_temp)
+    delete_folder(code_destination_path)
     copy_folder_contents(image_source_path, image_destination_path)
     copy_folder_contents(code_source_path, code_destination_path)
     copy_folder_contents(include_source_path, include_source_path_temp)
@@ -512,6 +513,7 @@ def process_custom_markup(md_content):
 
     md_content = re.sub(r"^::: {\.(.*?) .*", r"::: \1", md_content, flags=re.MULTILINE)
     md_content = re.sub(r"\[(.*)\]\{\..*?\}", r"`\1`", md_content, flags=re.MULTILINE)
+    md_content = re.sub(r"^------------*$","",md_content)
     md_content = md_content.replace(
         "<hacks@Aiven.io>", "[hacks@aiven.io](mailto:hacks@aiven.io)"
     )
@@ -598,13 +600,9 @@ def copy_folder_contents(source_path, destination_path):
         print(f"An error occurred: {e}")
 
 def fix_codeblock_title(md_content):
-    pattern = r"``` {\.(.*?) caption=\"(.*)\"}"
-
-    # Define the replacement pattern
+    pattern = r"```\s?{\.(.*?) caption=\"(.*)\"}"
     replacement = r'```\1 title="\2"'
-
-    # Perform the replacement with re.MULTILINE and re.DOTALL flags
-    result = re.sub(pattern, replacement, md_content, flags=re.MULTILINE | re.DOTALL)
+    result = re.sub(pattern, replacement, md_content, flags=re.MULTILINE)
     return result
 
 def extract_titles_with_anchors(md_content):
@@ -622,6 +620,8 @@ def comment_out_mermaid(md_content):
 # TODO
 # check docs/products/kafka/howto/prevent-full-disks.md
 # convert variables
+# process ::: {#.*?}
+# process [Integrated service]{.title-ref}.
 
 if __name__ == "__main__":
     main()
