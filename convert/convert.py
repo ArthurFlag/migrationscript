@@ -30,6 +30,7 @@ def main(docs_path, destination_repo, image_source_path, src_repo_path):
     copy_folder_contents(image_source_path, image_destination_path)
     copy_folder_contents(code_source_path, code_destination_path)
     copy_folder_contents(include_source_path, include_source_path_temp)
+    delete_file(os.path.join(include_source_path_temp,"platform-variables.rst"))
     copy_folder_contents(docs_path, source_path_temp)
 
     # fix_include_paths(source_path_temp, include_source_path_temp)
@@ -37,10 +38,37 @@ def main(docs_path, destination_repo, image_source_path, src_repo_path):
     convert_docs_to_md(
         source_path_temp, log_file_path, destination_docs_path
     )
-    cleanup_md(destination_docs_path, destination_repo)
+    cleanup_md_docs_files(destination_docs_path, destination_repo)
+    cleanup_includes(include_destination_path)
     add_includes(destination_docs_path)
     print("✅  Conversion done.")
     nextsteps()
+
+def cleanup_includes(md_folder_path):
+    print("\n🧹 Cleaning up MD includes...")
+    for root, dirs, files in os.walk(md_folder_path):
+        for file in files:
+            if file.endswith(".md"):
+                md_file_path = os.path.join(root, file)
+
+                with open(md_file_path, "r", encoding="utf-8") as md_file:
+                    md_content = md_file.read()
+                    md_content = fix_admonitions(md_content)
+                    md_content = fix_full_links(md_content)
+                    md_content = fix_standalone_links(md_content)
+                    md_content = fix_literal_includes(md_content)
+                    md_content = process_seealso_blocks(md_content)
+                    md_content = process_dropdowns(md_content)
+                    md_content = process_topic_blocks(md_content)
+                    md_content = comment_out_mermaid(md_content)
+                    md_content = fix_codeblock_title(md_content)
+                    md_content = process_grids(md_content)
+
+                # write the changes
+                with open(md_file_path, "w", encoding="utf-8") as md_file:
+                    # print(f"Wrote {md_file_path}")
+                    md_file.write(md_content)
+
 
 def add_includes(docs_path):
 
@@ -407,13 +435,24 @@ def process_seealso_blocks(md_content):
 
 
 def process_topic_blocks(md_content):
-    pattern = r":::topic\n\*\*(.*?)\*\*\n"
-    updated_content = re.sub(pattern, r":::note[\1]", md_content)
+    pattern = r":::topic\n\*\*(.*?)\*\*"
+    matches = re.finditer(pattern, md_content, flags=re.DOTALL)
 
+    updated_content = md_content
+    for match in matches:
+        matched_content = match.group(1)
+        # Remove line breaks from matched content
+        cleaned_content = matched_content.replace("\n", " ")
+        # Build the replacement string
+        replacement = f":::note[{cleaned_content}]"
+        # Perform the substitution
+        updated_content = re.sub(re.escape(match.group(0)), replacement, updated_content)
+
+    updated_content = re.sub(r"(:::note\[.*\]\n)\n",r"\1",updated_content)
     return updated_content
 
 
-def cleanup_md(md_folder_path, destination_repo_path):
+def cleanup_md_docs_files(md_folder_path, destination_repo_path):
     print("\n🧹 Cleaning up MD files...")
     all_titles = {}
     for root, dirs, files in os.walk(md_folder_path):

@@ -26,3 +26,14 @@ your custom cloud using [Aiven Console](https://console.aiven.io/).
 :::note[Result]
 The list of contacts for your cloud has been updated.
 :::
+
+:::note[No superuser permissions and no `aiven_extras`? Migrate using the dump method.]
+Without superuser permissions or `aiven_extras` installed, you cannot
+use the logical replication and migrate in a continuous manner. In that
+case, you can migrate your database using the dump method if you have
+the following permissions:
+
+-   Connect
+-   Select on all tables in the database
+-   Select on all the sequences in the database
+:::
