@@ -36,7 +36,6 @@ web interface. New accounts get a free trial!
 this `destination` this
 
 [support@aiven.io](mailto:support@aiven.io)
-------------------------------------------------------------------------
 
 ## Documentation contributors
 

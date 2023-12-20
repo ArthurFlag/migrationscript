@@ -39,6 +39,7 @@ def main(docs_path, destination_repo, image_source_path, src_repo_path):
         source_path_temp, log_file_path, destination_docs_path
     )
     cleanup_md_docs_files(destination_docs_path, destination_repo)
+    delete_file(os.path.join(include_destination_path,"platform-variables.md"))
     cleanup_includes(include_destination_path)
     add_includes(destination_docs_path)
     print("✅  Conversion done.")
@@ -552,7 +553,7 @@ def process_custom_markup(md_content):
 
     md_content = re.sub(r"^::: {\.(.*?) .*", r"::: \1", md_content, flags=re.MULTILINE)
     md_content = re.sub(r"\[(.*)\]\{\..*?\}", r"`\1`", md_content, flags=re.MULTILINE)
-    md_content = re.sub(r"^------------*$","",md_content)
+    md_content = re.sub(r"^--------*\n","",md_content, flags=re.MULTILINE)
     md_content = md_content.replace(
         "<hacks@Aiven.io>", "[hacks@aiven.io](mailto:hacks@aiven.io)"
     )
