@@ -19,7 +19,9 @@ def main(docs_path, destination_repo, image_source_path, src_repo_path):
     code_source_path = os.path.join(docs_path, "../code")
     code_destination_path = os.path.join(destination_repo, "static/code")
     source_path_temp = os.path.join(os.path.dirname(__file__), "../temp")
-    include_source_path_temp = os.path.join(os.path.dirname(__file__), "../includes_temp")
+    include_source_path_temp = os.path.join(
+        os.path.dirname(__file__), "../includes_temp"
+    )
 
     print("🧹  Deleting output...")
     delete_folder(destination_docs_path)
@@ -30,20 +32,20 @@ def main(docs_path, destination_repo, image_source_path, src_repo_path):
     copy_folder_contents(image_source_path, image_destination_path)
     copy_folder_contents(code_source_path, code_destination_path)
     copy_folder_contents(include_source_path, include_source_path_temp)
-    delete_file(os.path.join(include_source_path_temp,"platform-variables.rst"))
+    delete_file(os.path.join(include_source_path_temp, "platform-variables.rst"))
     copy_folder_contents(docs_path, source_path_temp)
 
     # fix_include_paths(source_path_temp, include_source_path_temp)
     convert_includes_to_md(log_file_path, include_source_path, include_destination_path)
-    convert_docs_to_md(
-        source_path_temp, log_file_path, destination_docs_path
-    )
+    convert_docs_to_md(source_path_temp, log_file_path, destination_docs_path)
     cleanup_md_docs_files(destination_docs_path, destination_repo)
-    delete_file(os.path.join(include_destination_path,"platform-variables.md"))
+    delete_file(os.path.join(include_destination_path, "platform-variables.md"))
     cleanup_includes(include_destination_path)
     add_includes(destination_docs_path)
+    delete_lines(os.path.join(destination_docs_path, "products"))
     print("✅  Conversion done.")
     nextsteps()
+
 
 def cleanup_includes(md_folder_path):
     print("\n🧹 Cleaning up MD includes...")
@@ -72,18 +74,17 @@ def cleanup_includes(md_folder_path):
 
 
 def add_includes(docs_path):
-
     files = [
-        os.path.join(docs_path,"products/cassandra/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/clickhouse/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/flink/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/grafana/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/influxdb/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/kafka/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/m3db/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/mysql/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/opensearch/reference/advanced-params.md"),
-        os.path.join(docs_path,"products/redis/reference/advanced-params.md"),
+        os.path.join(docs_path, "products/cassandra/reference/advanced-params.md"),
+        os.path.join(docs_path, "products/clickhouse/reference/advanced-params.md"),
+        os.path.join(docs_path, "products/flink/reference/advanced-params.md"),
+        os.path.join(docs_path, "products/grafana/reference/advanced-params.md"),
+        os.path.join(docs_path, "products/influxdb/reference/advanced-params.md"),
+        os.path.join(docs_path, "products/kafka/reference/advanced-params.md"),
+        os.path.join(docs_path, "products/m3db/reference/advanced-params.md"),
+        os.path.join(docs_path, "products/mysql/reference/advanced-params.md"),
+        os.path.join(docs_path, "products/opensearch/reference/advanced-params.md"),
+        os.path.join(docs_path, "products/redis/reference/advanced-params.md"),
     ]
     # deal with this one
     # os.path.join(docs_path,"products/postgresql/reference/advanced-params.md"),
@@ -91,28 +92,33 @@ def add_includes(docs_path):
     for file_path in files:
         service = file_path.split(os.path.sep)[len(docs_path.split(os.path.sep)) + 1]
 
-        with open(file_path, 'a') as file:
-            content_to_append = f'\nimport Reference from \'@site/static/includes/config-{service}.md\';\n\n<Reference />\n'
+        with open(file_path, "a") as file:
+            content_to_append = f"\nimport Reference from '@site/static/includes/config-{service}.md';\n\n<Reference />\n"
             file.write(content_to_append)
 
-    path = os.path.join(docs_path,"products/m3db/reference/advanced-params-m3aggregator.md")
-    with open(path, 'a') as file:
-        content_to_append = f'\nimport Reference from \'@site/static/includes/config-m3aggregator.md\';\n\n<Reference />\n'
+    path = os.path.join(
+        docs_path, "products/m3db/reference/advanced-params-m3aggregator.md"
+    )
+    with open(path, "a") as file:
+        content_to_append = f"\nimport Reference from '@site/static/includes/config-m3aggregator.md';\n\n<Reference />\n"
         file.write(content_to_append)
 
-    path = os.path.join(docs_path,"products/kafka/kafka-connect/reference/advanced-params.md")
-    with open(path, 'a') as file:
-        content_to_append = f'\nimport Reference from \'@site/static/includes/config-kafka_connect.md\';\n\n<Reference />\n'
+    path = os.path.join(
+        docs_path, "products/kafka/kafka-connect/reference/advanced-params.md"
+    )
+    with open(path, "a") as file:
+        content_to_append = f"\nimport Reference from '@site/static/includes/config-kafka_connect.md';\n\n<Reference />\n"
         file.write(content_to_append)
 
-    path = os.path.join(docs_path,"products/kafka/kafka-mirrormaker/reference/advanced-params.md")
-    with open(path, 'a') as file:
-        content_to_append = f'\nimport Reference from \'@site/static/includes/config-kafka_mirrormaker.md\';\n\n<Reference />\n'
+    path = os.path.join(
+        docs_path, "products/kafka/kafka-mirrormaker/reference/advanced-params.md"
+    )
+    with open(path, "a") as file:
+        content_to_append = f"\nimport Reference from '@site/static/includes/config-kafka_mirrormaker.md';\n\n<Reference />\n"
         file.write(content_to_append)
 
-def convert_docs_to_md(
-    source_path, log_file_path, destination_docs_path
-):
+
+def convert_docs_to_md(source_path, log_file_path, destination_docs_path):
     print(f"⚒️  Converting {source_path}...")
     for root, dirs, files in os.walk(source_path):
         for file in files:
@@ -153,7 +159,7 @@ def convert_includes_to_md(
                 )
 
 
-def fix_include_paths(source_path,include_source_path):
+def fix_include_paths(source_path, include_source_path):
     print(f"⚒️  Fixing include paths in {source_path}...")
     for root, dirs, files in os.walk(source_path):
         for file in files:
@@ -162,16 +168,20 @@ def fix_include_paths(source_path,include_source_path):
                 with open(rst_file_path, "r", encoding="utf-8") as rst_file:
                     rst_content = rst_file.read()
 
-                rst_content = update_include_link_rst(rst_content,include_source_path)
+                rst_content = update_include_link_rst(rst_content, include_source_path)
 
                 with open(rst_file_path, "w", encoding="utf-8") as rst_file:
                     rst_file.write(rst_content)
 
+
 def update_include_link_rst(rst_content, include_source_path):
     pattern = r"\.\. include:: /includes/(.*?\.rst)"
-    updated_content = re.sub(pattern, f".. include:: {include_source_path}/\\1", rst_content)
+    updated_content = re.sub(
+        pattern, f".. include:: {include_source_path}/\\1", rst_content
+    )
 
     return updated_content
+
 
 def nextsteps():
     out = """
@@ -210,7 +220,9 @@ def update_title(md_content):
 
         title_without_backticks = title_without_backticks.replace("®\\*", "®*")
         title_without_backticks = title_without_backticks.replace("\\'s", "'s")
-        title_without_backticks = title_without_backticks.replace("{#opensearch-backup}","")
+        title_without_backticks = title_without_backticks.replace(
+            "{#opensearch-backup}", ""
+        )
 
         yaml_front_matter = f"---\ntitle: {title_without_backticks}\n---\n"
 
@@ -307,7 +319,7 @@ def delete_folders_until_docs(abs_path):
     path_components = abs_path.split(os.path.sep)
 
     # Find the index of 'docs' in the path
-    docs_index = path_components.index('docs') if 'docs' in path_components else -1
+    docs_index = path_components.index("docs") if "docs" in path_components else -1
 
     # Check if 'docs' is found in the path
     if docs_index != -1:
@@ -359,6 +371,7 @@ def fix_anchor_links_same_page(md_content, all_titles, md_file_path):
     # Use re.sub to replace the matches with the dictionary values
     updated_content = re.sub(pattern, replace_match, md_content)
     return updated_content
+
 
 def fix_refs_name(md_content, all_titles):
     # `name <anchor>`{\.interpreted-...
@@ -447,9 +460,11 @@ def process_topic_blocks(md_content):
         # Build the replacement string
         replacement = f":::note[{cleaned_content}]"
         # Perform the substitution
-        updated_content = re.sub(re.escape(match.group(0)), replacement, updated_content)
+        updated_content = re.sub(
+            re.escape(match.group(0)), replacement, updated_content
+        )
 
-    updated_content = re.sub(r"(:::note\[.*\]\n)\n",r"\1",updated_content)
+    updated_content = re.sub(r"(:::note\[.*\]\n)\n", r"\1", updated_content)
     return updated_content
 
 
@@ -464,7 +479,7 @@ def cleanup_md_docs_files(md_folder_path, destination_repo_path):
                 with open(md_file_path, "r", encoding="utf-8") as md_file:
                     md_content = md_file.read()
                     md_content = update_title(md_content)
-                    all_titles[md_file_path]=extract_titles_with_anchors(md_content)
+                    all_titles[md_file_path] = extract_titles_with_anchors(md_content)
                     md_content = fix_admonitions(md_content)
                     md_content = fix_full_links(md_content)
                     md_content = fix_standalone_links(md_content)
@@ -490,7 +505,9 @@ def cleanup_md_docs_files(md_folder_path, destination_repo_path):
 
                 with open(md_file_path, "r", encoding="utf-8") as md_file:
                     md_content = md_file.read()
-                    md_content = fix_anchor_links_same_page(md_content, all_titles, md_file_path)
+                    md_content = fix_anchor_links_same_page(
+                        md_content, all_titles, md_file_path
+                    )
                     md_content = fix_no_name_links(md_content, destination_repo_path)
                     md_content = fix_refs(md_content, all_titles)
                     md_content = fix_refs_name(md_content, all_titles)
@@ -499,48 +516,50 @@ def cleanup_md_docs_files(md_folder_path, destination_repo_path):
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
                     md_file.write(md_content)
 
+
 def fix_grids(md_folder_path):
-  # only fix grids on landiing pages.
-  pages = ["tools.md",
-           "get-started.md",
-           "integrations.md",
-           "products/cassandra.md",
-           "products/clickhouse.md",
-           "products/dragonfly.md",
-           "products/flink.md",
-           "products/grafana.md",
-           "products/influxdb.md",
-           "products/kafka.md",
-           "products/m3db.md",
-           "products/mysql.md",
-           "products/opensearch.md",
-           "products/postgres.md",
-           "products/redis.md",
-           "products/cassandra/reference.md",
-           "products/cassandra/howto/list-get-started.md",
-           "products/clickhouse/concepts.md",
-           "products/clickhouse/list-overview.md",
-           "products/clickhouse/reference.md",
-           "products/clickhouse/list-connect-to-service.md",
-           "products/clickhouse/howto/list-get-started.md",
-           "products/clickhouse/howto/list-integrations.md",
-           ]
-  # join path with md_folder_path
-  for p in pages:
-    try:
-      with open(p, "r", encoding="utf-8") as md_file:
-        md_content = md_file.read()
-        md_content = process_grids(md_content)
-      with open(p, "w", encoding="utf-8") as md_file:
-        md_file.write(md_content)
-    except FileNotFoundError:
-      print(f"File not found: {p}")
+    # only fix grids on landiing pages.
+    pages = [
+        "tools.md",
+        "get-started.md",
+        "integrations.md",
+        "products/cassandra.md",
+        "products/clickhouse.md",
+        "products/dragonfly.md",
+        "products/flink.md",
+        "products/grafana.md",
+        "products/influxdb.md",
+        "products/kafka.md",
+        "products/m3db.md",
+        "products/mysql.md",
+        "products/opensearch.md",
+        "products/postgres.md",
+        "products/redis.md",
+        "products/cassandra/reference.md",
+        "products/cassandra/howto/list-get-started.md",
+        "products/clickhouse/concepts.md",
+        "products/clickhouse/list-overview.md",
+        "products/clickhouse/reference.md",
+        "products/clickhouse/list-connect-to-service.md",
+        "products/clickhouse/howto/list-get-started.md",
+        "products/clickhouse/howto/list-integrations.md",
+    ]
+    # join path with md_folder_path
+    for p in pages:
+        try:
+            with open(p, "r", encoding="utf-8") as md_file:
+                md_content = md_file.read()
+                md_content = process_grids(md_content)
+            with open(p, "w", encoding="utf-8") as md_file:
+                md_file.write(md_content)
+        except FileNotFoundError:
+            print(f"File not found: {p}")
 
 
 def process_grids(md_content):
     # deletes grid instructions from the content
     grid_declaration = r"^::: ?grid\b.*:::"
-    fix =r"import DocCardList from '@theme/DocCardList';\n\n<DocCardList />"
+    fix = r"import DocCardList from '@theme/DocCardList';\n\n<DocCardList />"
     content_final = re.sub(
         grid_declaration, fix, md_content, flags=re.MULTILINE | re.DOTALL
     )
@@ -553,7 +572,6 @@ def process_custom_markup(md_content):
 
     md_content = re.sub(r"^::: {\.(.*?) .*", r"::: \1", md_content, flags=re.MULTILINE)
     md_content = re.sub(r"\[(.*)\]\{\..*?\}", r"`\1`", md_content, flags=re.MULTILINE)
-    md_content = re.sub(r"^--------*\n","",md_content, flags=re.MULTILINE)
     md_content = md_content.replace(
         "<hacks@Aiven.io>", "[hacks@aiven.io](mailto:hacks@aiven.io)"
     )
@@ -568,9 +586,11 @@ def process_custom_markup(md_content):
     md_content = md_content.replace('{width="100.0%"}', "")
     md_content = md_content.replace('{height="342px"}', "")
     md_content = md_content.replace('{height="249px"}', "")
-    md_content = md_content.replace('](sales@aiven.io) ', "](mailto:sales@aiven.io)")
+    md_content = md_content.replace("](sales@aiven.io) ", "](mailto:sales@aiven.io)")
     md_content = md_content.replace("::: {#Terminology", ":::Terminology")
-    md_content = re.sub(r"{\.interpreted-text\s*?role=\"bdg-secondary\"}","",md_content)
+    md_content = re.sub(
+        r"{\.interpreted-text\s*?role=\"bdg-secondary\"}", "", md_content
+    )
 
     md_content = re.sub(
         r"\n:::\s?tableofcontents\n:::\n", r"", md_content, flags=re.MULTILINE
@@ -578,6 +598,7 @@ def process_custom_markup(md_content):
     md_content = re.sub(r"<(https://.*)>", r"[\1](\1)", md_content, flags=re.MULTILINE)
 
     return md_content
+
 
 def replace_anchors_in_content(md_content):
     pattern = r"`(.*?)\s?<(.*)>`{\.interpreted-text\s*role=\"ref\"}"
@@ -594,7 +615,7 @@ def replace_anchors_in_content(md_content):
         "replicated-database-engine": "/docs/products/clickhouse/concepts/service-architecture#replicated-database-engine",
         "replicated-table-engine": "/docs/products/clickhouse/concepts/service-architecture#replicated-table-engine",
         "manage-roles-and-permissions": "/docs/products/clickhouse/howto/manage-users-roles#manage-roles-and-permissions",
-        "networking-with-vpc-peering":  "/docs/platform/concepts/cloud-security#networking-with-vpc-peering",
+        "networking-with-vpc-peering": "/docs/platform/concepts/cloud-security#networking-with-vpc-peering",
         "continuous-migration": "/docs/products/mysql/howto/migrate-db-to-aiven-via-console#about-migrating-via-console",
         "mysqldump-migration": "/docs/products/mysql/howto/migrate-db-to-aiven-via-console",
         "set-service-contacts": "/docs/platform/howto/technical-emails#set-service-contacts",
@@ -603,7 +624,7 @@ def replace_anchors_in_content(md_content):
         "remote-storage-overview": "/docs/products/kafka/howto/tiered-storage-overview-page#remote-storage-overview",
         "opensearch-backup": "/docs/products/opensearch/concepts/backups",
         "reference": "#reference",
-        "stop-migration-mysql": "#stop-migration-mysql"
+        "stop-migration-mysql": "#stop-migration-mysql",
     }
 
     def replace_match(match):
@@ -621,15 +642,17 @@ def replace_anchors_in_content(md_content):
     updated_content = re.sub(pattern, replace_match, md_content)
     return updated_content
 
+
 def process_dropdowns(md_content):
-  pattern = r"(\s+)^(\s*):::dropdown\s*$(.*?)\n\n(.*?)^\s*:::\s*$"
+    pattern = r"(\s+)^(\s*):::dropdown\s*$(.*?)\n\n(.*?)^\s*:::\s*$"
 
-  # Define the replacement pattern
-  replacement = r"\1\2<details><summary>\3\n\2</summary>\n\n\4\n\2</details>\n"
+    # Define the replacement pattern
+    replacement = r"\1\2<details><summary>\3\n\2</summary>\n\n\4\n\2</details>\n"
 
-  # Perform the replacement with re.MULTILINE and re.DOTALL flags
-  result = re.sub(pattern, replacement, md_content, flags=re.MULTILINE | re.DOTALL)
-  return result
+    # Perform the replacement with re.MULTILINE and re.DOTALL flags
+    result = re.sub(pattern, replacement, md_content, flags=re.MULTILINE | re.DOTALL)
+    return result
+
 
 def copy_folder_contents(source_path, destination_path):
     print(f"📸 Copying {source_path} into {destination_path}...")
@@ -639,11 +662,13 @@ def copy_folder_contents(source_path, destination_path):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+
 def fix_codeblock_title(md_content):
     pattern = r"```\s?{\.(.*?) caption=\"(.*)\"}"
     replacement = r'```\1 title="\2"'
     result = re.sub(pattern, replacement, md_content, flags=re.MULTILINE)
     return result
+
 
 def extract_titles_with_anchors(md_content):
     title_pattern = r"#+ (.+?) \{#(.+?)\}"
@@ -651,11 +676,27 @@ def extract_titles_with_anchors(md_content):
     titles_and_anchors = {anchor: title for title, anchor in title_matches}
     return titles_and_anchors
 
+
 def comment_out_mermaid(md_content):
     pattern = r"(:::mermaid.*?:::)"
     updated_content = re.sub(pattern, r"<!--\n\1\n-->", md_content, flags=re.DOTALL)
 
     return updated_content
+
+
+def delete_lines(md_folder_path):
+    for file in os.listdir(md_folder_path):
+        if file.endswith(".md"):
+            md_file_path = os.path.join(md_folder_path, file)
+
+            with open(md_file_path, "r", encoding="utf-8") as md_file:
+                md_content = md_file.read()
+                md_content = re.sub(r"^--------*\n", "", md_content, flags=re.MULTILINE)
+
+            # write the changes
+            with open(md_file_path, "w", encoding="utf-8") as md_file:
+                md_file.write(md_content)
+                print(f"Wrote {md_file_path}")
 
 # TODO
 # check docs/products/kafka/howto/prevent-full-disks.md
