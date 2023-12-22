@@ -43,6 +43,7 @@ def main(docs_path, destination_repo, image_source_path, src_repo_path):
     cleanup_includes(include_destination_path)
     add_includes(destination_docs_path)
     delete_lines(os.path.join(destination_docs_path, "products"))
+    fix_specific_files(destination_repo)
     print("✅  Conversion done.")
     nextsteps()
 
@@ -213,18 +214,24 @@ def delete_folder(path):
 def update_title(md_content):
     match = re.search(r"^#\s*(.*)", md_content, re.MULTILINE)
     if match:
-        title_without_backticks = match.group(1).replace("`", "")
+        title = match.group(1).replace("`", "")
 
-        if ":" in title_without_backticks:
-            title_without_backticks = f'"{title_without_backticks}"'
+        if ":" in title:
+            title = f'"{title}"'
 
-        title_without_backticks = title_without_backticks.replace("®\\*", "®*")
-        title_without_backticks = title_without_backticks.replace("\\'s", "'s")
-        title_without_backticks = title_without_backticks.replace(
+        title = title.replace("®\\*", "®*")
+        title = title.replace("\\'s", "'s")
+        title = title.replace(
             "{#opensearch-backup}", ""
         )
 
-        yaml_front_matter = f"---\ntitle: {title_without_backticks}\n---\n"
+        beta_line = ""
+        if "|beta|" in title:
+            title = title.replace(" |beta|", "")
+            beta_line = "beta: true"
+            yaml_front_matter = f"---\ntitle: {title}\n{beta_line}\n---\n"
+        else:
+            yaml_front_matter = f"---\ntitle: {title}\n---\n"
 
         content_lines = md_content.split("\n", 1)
         if re.match(r"^#\s", content_lines[0]):
@@ -600,6 +607,29 @@ def process_custom_markup(md_content):
     return md_content
 
 
+def fix_specific_files(repo_path):
+    service_memory_capped = os.path.join(
+        repo_path, "static/includes/services-memory-capped.md"
+    )
+
+    with open(service_memory_capped, "r", encoding="utf-8") as md_file:
+        md_content = md_file.read()
+        md_content = re.sub(r"^(\#+)", "#\1", md_content, flags=re.MULTILINE)
+    with open(service_memory_capped, "w", encoding="utf-8") as md_file:
+        md_file.write(md_content)
+
+    service_memory_limits = os.path.join(
+        repo_path, "docs/platform/concepts/service-memory-limits.md"
+    )
+    with open(service_memory_limits, 'a', encoding='utf-8') as file:
+        import_statement = """
+import Cap from '@site/static/includes/services-memory-capped.md'
+
+<Cap/>
+        """
+        file.write(import_statement)
+
+
 def replace_anchors_in_content(md_content):
     pattern = r"`(.*?)\s?<(.*)>`{\.interpreted-text\s*role=\"ref\"}"
 
@@ -696,7 +726,8 @@ def delete_lines(md_folder_path):
             # write the changes
             with open(md_file_path, "w", encoding="utf-8") as md_file:
                 md_file.write(md_content)
-                print(f"Wrote {md_file_path}")
+                # print(f"Wrote {md_file_path}")
+
 
 # TODO
 # check docs/products/kafka/howto/prevent-full-disks.md

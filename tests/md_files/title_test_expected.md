@@ -1,5 +1,6 @@
 ---
 title: "Send logs to AWS: CloudWatch's from Aiven client"
+beta: true
 ---
 
 This article will show you how you can send logs from your Aiven service
