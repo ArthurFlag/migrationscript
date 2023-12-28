@@ -713,7 +713,6 @@ def comment_out_mermaid(md_content):
 
     return updated_content
 
-
 def delete_lines(md_folder_path):
     for file in os.listdir(md_folder_path):
         if file.endswith(".md"):
@@ -728,6 +727,35 @@ def delete_lines(md_folder_path):
                 md_file.write(md_content)
                 # print(f"Wrote {md_file_path}")
 
+def convert_pmtable_to_html(table_content):
+    table_html = "<table>\n"
+    headers = "  <thead>\n    <tr><th>Parameter</th><th>Information</th></tr>\n  </thead>"
+    table_html += headers
+    table_html += "\n  <tbody>\n"
+    rows = table_content.strip().split('\n')
+
+    for row in rows:
+        columns = row.split('  ')
+        columns = [col.strip() for col in columns if col.strip()]  # Remove empty strings
+        if columns:
+            table_html += "    <tr>\n"
+            for col in columns:
+                table_html += f"      <td>{col}</td>\n"
+            table_html += "    </tr>\n"
+    table_html += "  </tbody>\n"
+    table_html += "</table>\n"
+
+    return table_html
+
+def convert_markup_to_html(md_content):
+    table_pattern = re.compile(r"  Parameter\s+Information\s*[-]+\s*.*?\n(.*?)(?=\n\n|$)", re.DOTALL)
+
+    def replace_table(match):
+        table_content = match.group(1)
+        return convert_pmtable_to_html(table_content)
+
+    html_content = re.sub(table_pattern, replace_table, md_content)
+    return html_content
 
 # TODO
 # check docs/products/kafka/howto/prevent-full-disks.md
