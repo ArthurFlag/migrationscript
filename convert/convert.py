@@ -497,6 +497,8 @@ def cleanup_md_docs_files(md_folder_path, destination_repo_path):
                     md_content = comment_out_mermaid(md_content)
                     md_content = fix_codeblock_title(md_content)
                     md_content = process_grids(md_content)
+                    md_content = convert_pm1_to_html(md_content)
+                    md_content = convert_pm2_to_html(md_content)
 
                 # write the changes
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
@@ -747,7 +749,31 @@ def convert_pmtable_to_html(table_content):
 
     return table_html
 
-def convert_markup_to_html(md_content):
+
+def convert_normal_pmtable_to_html(table_content):
+    table_html = "<table>\n"
+    headers = "  <thead>\n    <tr><th>Parameter</th><th>Information</th></tr>\n  </thead>"
+    table_html += headers
+    table_html += "\n  <tbody>\n"
+    rows = table_content.split('\n')
+
+    for row in rows:
+      # TODO check if next row --- if not stay in current td
+        row = row[1:-1] # remove first and last char (|)
+        if not "---" in row and len(row)>1:
+          columns = row.split('|')
+          if columns:
+              table_html += "    <tr>\n"
+              for col in columns:
+                  table_html += f"      <td>{col.strip()}</td>\n"
+              table_html += "    </tr>\n"
+    table_html += "  </tbody>\n"
+    table_html += "</table>\n\n"
+
+    return table_html
+
+
+def convert_pm1_to_html(md_content):
     table_pattern = re.compile(r"  Parameter\s+Information\s*[-]+\s*.*?\n(.*?)(?=\n\n|$)", re.DOTALL)
 
     def replace_table(match):
@@ -757,11 +783,22 @@ def convert_markup_to_html(md_content):
     html_content = re.sub(table_pattern, replace_table, md_content)
     return html_content
 
-# TODO
+
+def convert_pm2_to_html(md_content):
+
+    regex = r"\+\-.*?$\n\| ?Parameter.+?Information.*?\n\+\=.*?\n(.*?)\+\-+?\+\-+\+\n\n"
+
+    def replace_table(match):
+        table_content = match.group(1)
+        return convert_normal_pmtable_to_html(table_content)
+
+    html_content= re.sub(regex, replace_table, md_content, 0, re.DOTALL | re.MULTILINE)
+
+    return html_content
+
 # check docs/products/kafka/howto/prevent-full-disks.md
-# convert variables
-# process ::: {#.*?}
 # process [Integrated service]{.title-ref}.
+
 
 if __name__ == "__main__":
     main()
