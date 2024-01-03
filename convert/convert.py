@@ -757,18 +757,31 @@ def convert_normal_pmtable_to_html(table_content):
     table_html += "\n  <tbody>\n"
     rows = table_content.split('\n')
 
-    for row in rows:
-      # TODO check if next row --- if not stay in current td
-        row = row[1:-1] # remove first and last char (|)
-        if not "---" in row and len(row)>1:
-          columns = row.split('|')
-          if columns:
-              table_html += "    <tr>\n"
-              for col in columns:
-                  table_html += f"      <td>{col.strip()}</td>\n"
-              table_html += "    </tr>\n"
+    newRow = True
+    rowRep = []
+    for i, row in enumerate(rows):
+        row = row[1:-1]  # remove first and last char (|)
+        next_row = rows[i + 1] if i + 1 < len(rows) else None
+
+        if "---" in row or len(row)==0:
+          if rowRep:
+            table_html+= f"     <tr><td>{rowRep[0]}</td><td>{rowRep[1]}</td></tr>\n"
+          newRow = True
+          rowRep = []
+
+        if not "---" in row and len(row) > 1:
+          if newRow:
+            columns = row.split('|')
+            rowRep = [columns[0].strip(), columns[1].strip()]
+            newRow = False
+          else:
+            columns = row.split('|')
+            rowRep[0]+= columns[0].strip()
+            rowRep[1]+=" " + columns[1].strip()
+
     table_html += "  </tbody>\n"
     table_html += "</table>\n\n"
+    table_html = re.sub(r"`(.*?)`",r"<code>\1</code>",table_html)
 
     return table_html
 

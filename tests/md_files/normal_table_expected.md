@@ -5,14 +5,8 @@ test
     <tr><th>Parameter</th><th>Information</th></tr>
   </thead>
   <tbody>
-    <tr>
-      <td>`service_name`</td>
-      <td>The name of the service</td>
-    </tr>
-    <tr>
-      <td>`service_name`</td>
-      <td>The name of the service</td>
-    </tr>
+     <tr><td><code>service_name</code></td><td>The name of the service. Stuff.</td></tr>
+     <tr><td><code>service_name</code></td><td>The name of the service</td></tr>
   </tbody>
 </table>
 
@@ -23,14 +17,8 @@ test
     <tr><th>Parameter</th><th>Information</th></tr>
   </thead>
   <tbody>
-    <tr>
-      <td>`yes`</td>
-      <td>a</td>
-    </tr>
-    <tr>
-      <td>`no`</td>
-      <td>b</td>
-    </tr>
+     <tr><td><code>yes</code></td><td>a</td></tr>
+     <tr><td><code>no</code></td><td>b</td></tr>
   </tbody>
 </table>
 
