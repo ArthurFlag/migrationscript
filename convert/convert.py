@@ -657,6 +657,7 @@ def replace_anchors_in_content(md_content):
         "opensearch-backup": "/docs/products/opensearch/concepts/backups",
         "reference": "#reference",
         "stop-migration-mysql": "#stop-migration-mysql",
+        "create-har-files": "#create-har-files"
     }
 
     def replace_match(match):
