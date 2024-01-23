@@ -552,6 +552,9 @@ def fix_grids(md_folder_path):
         "products/clickhouse/list-connect-to-service.md",
         "products/clickhouse/howto/list-get-started.md",
         "products/clickhouse/howto/list-integrations.md",
+        "products/cassandra/howto/list-cross-cluster-replication",
+        "products/cassandra/howto/list-manage-service",
+        "products/dragonfly/howto",
     ]
     # join path with md_folder_path
     for p in pages:
