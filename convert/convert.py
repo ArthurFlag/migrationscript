@@ -497,8 +497,8 @@ def cleanup_md_docs_files(md_folder_path, destination_repo_path):
                     md_content = comment_out_mermaid(md_content)
                     md_content = fix_codeblock_title(md_content)
                     md_content = process_grids(md_content)
-                    md_content = convert_pm1_to_html(md_content)
-                    md_content = convert_pm2_to_html(md_content)
+                    # md_content = convert_pm1_to_html(md_content)
+                    # md_content = convert_pm2_to_html(md_content)
 
                 # write the changes
                 with open(md_file_path, "w", encoding="utf-8") as md_file:
